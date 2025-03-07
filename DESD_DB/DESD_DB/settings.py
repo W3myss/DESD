@@ -41,12 +41,6 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "corsheaders",
     "channels",  # WebSockets
-    "users",
-    "posts",
-    "notifications",
-    "user_messages",
-    "community",
-    "event",
 ]
 
 MIDDLEWARE = [
