@@ -1,0 +1,10 @@
+backend:
+
+.\env\Scripts\activate
+cd backend
+python manage.py runserver
+
+front end:
+
+cd frontend
+npm run dev
