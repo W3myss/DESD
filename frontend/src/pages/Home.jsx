@@ -29,8 +29,8 @@ function Home() {
     api
       .delete(`/api/notes/delete/${id}/`)
       .then((res) => {
-        if (res.status === 204) alert("Note deleted!");
-        else alert("Error deleting note!");
+        if (res.status === 204) alert("Post deleted!");
+        else alert("Error deleting post!");
         getNotes();
       })
       .catch((error) => alert(error));
@@ -41,8 +41,8 @@ function Home() {
     api
       .post("/api/notes/", { content, title })
       .then((res) => {
-        if (res.status === 201) alert("Note created!");
-        else alert("Error creating note!");
+        if (res.status === 201) alert("Post created!");
+        else alert("Error creating post!");
         getNotes();
       })
       .catch((error) => alert(error));

@@ -14,7 +14,7 @@ function Navbar({ title }) {
   return (
     <nav className="navbar">
       <Link to="/" className="navbar-title">
-        Home
+        HOME
       </Link>
       <button className="navbar-logout" onClick={handleLogout}>
         <img src={logoutIcon} alt="Logout Icon" className="logout-icon" /> Logout

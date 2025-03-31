@@ -29,14 +29,15 @@
     background-color: #ccc;
   }
   .navbar-title {
-    font-size: 1.5rem;
+    font-size: 1rem;
     font-weight: bold;
     color: white;
     text-decoration: none; /* Remove underline */
   }
   
   .navbar-title:hover {
-    text-decoration: underline; /* Add underline on hover */
+    text-decoration: none; /* Add underline on hover */
+    color: #ccc;
   }
   .logout-icon {
     width: 20px;
