@@ -1,3 +1,5 @@
+open 2 terminals.
+
 backend:
 
 .\env\Scripts\activate

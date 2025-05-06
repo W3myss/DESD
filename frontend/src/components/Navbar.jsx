@@ -1,23 +1,40 @@
 import React from "react";
-import { useNavigate, Link } from "react-router-dom"; // Import Link
+import { useNavigate, NavLink, useLocation } from "react-router-dom";
 import "../styles/Navbar.css";
-import logoutIcon from "../assets/logout.svg"; // Import the logout SVG
+import logoutIcon from "../assets/logout.svg";
 
-function Navbar({ title }) {
+function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
-    localStorage.clear(); // Clear tokens or any stored data
-    navigate("/login"); // Redirect to login page
+    localStorage.clear();
+    navigate("/login");
   };
 
   return (
     <nav className="navbar">
-      <Link to="/" className="navbar-title">
-        HOME
-      </Link>
+      <div className="navbar-links">
+        <NavLink 
+          to="/" 
+          className={({ isActive }) => 
+            isActive ? "navbar-title active" : "navbar-title"
+          }
+        >
+          HOME
+        </NavLink>
+        <NavLink 
+          to="/profile" 
+          className={({ isActive }) => 
+            isActive ? "navbar-title active" : "navbar-title"
+          }
+        >
+          PROFILE
+        </NavLink>
+      </div>
       <button className="navbar-logout" onClick={handleLogout}>
-        <img src={logoutIcon} alt="Logout Icon" className="logout-icon" /> Logout
+        <img src={logoutIcon} alt="Logout" className="logout-icon" />
+        LOGOUT
       </button>
     </nav>
   );

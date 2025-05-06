@@ -1,49 +1,82 @@
-.note-container {
+.note-card {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   padding: 20px;
-  margin: 20px 0;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
-.note-title {
-  color: #2c3e50;
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 10px;
+.note-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
-.note-content {
-  color: #4d4d4d;
-  font-size: 1rem;
-  line-height: 1.6;
+.note-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.note-author {
+  color: #e30613;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
 }
 
 .note-date {
-  color: #7f8c8d;
-  font-size: 0.9rem;
-  margin-bottom: 15px;
-  font-style: italic;
+  color: #888;
+  font-size: 0.8rem;
+}
+
+.note-title {
+  color: #333;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0 0 10px 0;
+}
+
+.note-content {
+  color: #555;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0 0 15px 0;
+  flex-grow: 1;
+}
+
+.note-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .delete-button {
-  background-color: #e74c3c; /* Red */
+  background-color: #e30613;
   color: white;
   border: none;
-  padding: 10px 15px;
+  padding: 8px 16px;
   border-radius: 5px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background-color 0.3s, transform 0.2s;
+  transition: background-color 0.3s;
 }
 
 .delete-button:hover {
-  background-color: #c0392b; /* Darker red */
-  transform: scale(1.05);
+  background-color: #c00511;
+}
+css
+.note-meta {
+  color: #888;
+  font-size: 0.9rem;
+  margin-left: 8px;
 }
 
-.delete-button:active {
-  transform: scale(0.95);
+.note-meta::before {
+  content: "•";
+  margin-right: 4px;
 }
