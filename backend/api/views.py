@@ -226,7 +226,6 @@ class MembershipView(generics.CreateAPIView, generics.DestroyAPIView):
 class EventListCreateView(generics.ListCreateAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)

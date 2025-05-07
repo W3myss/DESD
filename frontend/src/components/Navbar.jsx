@@ -39,6 +39,14 @@ function Navbar() {
         >
           PROFILE
         </NavLink>
+        <NavLink 
+          to="/events" 
+          className={({ isActive }) => 
+            isActive ? "navbar-title active" : "navbar-title"
+          }
+        >
+          EVENTS
+        </NavLink>
       </div>
       <button className="navbar-logout" onClick={handleLogout}>
         <img src={logoutIcon} alt="Logout" className="logout-icon" />

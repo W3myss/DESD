@@ -96,13 +96,7 @@ class CreateCommunitySerializer(serializers.ModelSerializer):
 from .models import Event
 
 class EventSerializer(serializers.ModelSerializer):
-    community_name = serializers.ReadOnlyField(source='community.name')
-    created_by_username = serializers.ReadOnlyField(source='created_by.username')
-
     class Meta:
         model = Event
-        fields = [
-            'id', 'title', 'description', 'date', 'time', 'location', 'virtual_link',
-            'event_type', 'community', 'community_name', 'created_by', 'created_by_username', 'created_at'
-        ]
-        read_only_fields = ['id', 'created_by', 'created_at']
+        fields = ['id', 'title', 'description', 'date', 'time', 'location', 'virtual_link', 'event_type', 'created_at', 'created_by']
+        read_only_fields = ['created_by']
