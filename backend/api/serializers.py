@@ -4,6 +4,7 @@ from .models import Note
 from .models import Profile
 from .models import Community
 from .models import Membership
+from .models import Event
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -91,3 +92,17 @@ class CreateCommunitySerializer(serializers.ModelSerializer):
             role='admin'
         )
         return community
+
+from .models import Event
+
+class EventSerializer(serializers.ModelSerializer):
+    community_name = serializers.ReadOnlyField(source='community.name')
+    created_by_username = serializers.ReadOnlyField(source='created_by.username')
+
+    class Meta:
+        model = Event
+        fields = [
+            'id', 'title', 'description', 'date', 'time', 'location', 'virtual_link',
+            'event_type', 'community', 'community_name', 'created_by', 'created_by_username', 'created_at'
+        ]
+        read_only_fields = ['id', 'created_by', 'created_at']

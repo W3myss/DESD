@@ -8,6 +8,9 @@ from rest_framework import status, filters
 from rest_framework.response import Response
 from django.db import models
 from rest_framework.exceptions import PermissionDenied
+from rest_framework import permissions
+from .models import Event
+from .serializers import EventSerializer
 
 
 
@@ -219,3 +222,21 @@ class MembershipView(generics.CreateAPIView, generics.DestroyAPIView):
         
         membership.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class EventListCreateView(generics.ListCreateAPIView):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+class EventDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_destroy(self, instance):
+        if instance.created_by != self.request.user:
+            raise PermissionDenied("You do not have permission to delete this event.")
+        instance.delete()
