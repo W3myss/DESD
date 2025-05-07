@@ -54,3 +54,44 @@
 .form-footer a:hover {
     text-decoration: underline;
 }
+
+.form-error {
+    color: #ff3333;
+    margin-bottom: 15px;
+    text-align: center;
+}
+.password-strength-container {
+    width: 90%;
+    margin-bottom: 1rem;
+}
+
+.password-strength-bar {
+    width: 100%;
+    height: 5px;
+    background-color: #e0e0e0;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.password-strength-fill {
+    height: 100%;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.password-strength-text {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.password-strength-messages {
+    font-size: 0.7rem;
+    color: #666;
+    padding-left: 1rem;
+    margin: 0;
+}
+
+.password-strength-messages li {
+    margin-bottom: 0.2rem;
+}

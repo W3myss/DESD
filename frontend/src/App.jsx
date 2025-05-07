@@ -8,6 +8,7 @@ import Communities from "./pages/Communities";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CommunityPage from './pages/CommunityPage';
+import Events from "./pages/Events";
 
 function Logout() {
   localStorage.clear();
@@ -59,6 +60,14 @@ function App() {
         <Route path="/logout" element={<Logout />} />
         <Route path="/register" element={<RegisterAndLogout />} />
         <Route path="*" element={<NotFound />} />
+        <Route
+          path="/events"
+          element={
+            <ProtectedRoute>
+              <Events />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     
   );

@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import EventListCreateView, EventDetailView
 
 urlpatterns = [
     path("notes/", views.NoteListCreate.as_view(), name="note-list"),
@@ -11,4 +12,6 @@ urlpatterns = [
     path("communities/slug/<slug:slug>/", views.CommunityDetailBySlug.as_view(), name="community-detail-slug"),
     path("communities/<int:pk>/join/", views.MembershipView.as_view(), name="join-community"),
     path("communities/<int:pk>/leave/", views.MembershipView.as_view(), name="leave-community"),
+    path('events/', EventListCreateView.as_view(), name='event-list-create'),
+    path('events/<int:pk>/', EventDetailView.as_view(), name='event-detail'),
 ]
