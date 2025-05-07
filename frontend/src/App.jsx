@@ -7,6 +7,7 @@ import Profile from "./pages/Profile";
 import Communities from "./pages/Communities";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Events from "./pages/Events";
 
 function Logout() {
   localStorage.clear();
