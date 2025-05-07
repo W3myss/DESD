@@ -10,3 +10,9 @@ front end:
 
 cd frontend
 npm run dev
+
+
+create and run migrations:
+
+python manage.py makemigrations
+python manage.py migrate

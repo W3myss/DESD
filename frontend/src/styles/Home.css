@@ -62,8 +62,10 @@
 
 .posts-feed {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: 1fr; /* Single column for wider posts */
   gap: 25px;
+  max-width: 900px; /* Wider container */
+  margin: 0 auto;
 }
 
 .loading, .no-posts {

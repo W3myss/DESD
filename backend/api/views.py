@@ -1,12 +1,14 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.models import User
 from rest_framework import generics
-from .serializers import UserSerializer, NoteSerializer, ProfileSerializer
+from .serializers import UserSerializer, NoteSerializer, ProfileSerializer, CommunitySerializer, MembershipSerializer, CreateCommunitySerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import Note
-from rest_framework import status
+from .models import Note, Community, Membership, Profile
+from rest_framework import status, filters
 from rest_framework.response import Response
-from .models import Profile
+from django.db import models
+from rest_framework.exceptions import PermissionDenied
+
 
 
 class NoteListCreate(generics.ListCreateAPIView):
@@ -58,15 +60,162 @@ class CreateUserView(generics.CreateAPIView):
 class ProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated]
+    lookup_field = 'user__username'
+    lookup_url_kwarg = 'username'
+
+    def get_queryset(self):
+        return Profile.objects.all()
 
     def get_object(self):
-        profile, created = Profile.objects.get_or_create(user=self.request.user)
-        return profile
+        if 'username' in self.kwargs:
+            # Viewing another user's profile
+            username = self.kwargs['username']
+            return get_object_or_404(Profile, user__username=username)
+        else:
+            # Viewing own profile
+            profile, created = Profile.objects.get_or_create(user=self.request.user)
+            return profile
 
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+    def get_object(self):
+        if 'username' in self.kwargs:
+            # Viewing another user's profile
+            username = self.kwargs['username']
+            return get_object_or_404(Profile, user__username=username)
+        else:
+            # Viewing own profile
+            profile, created = Profile.objects.get_or_create(user=self.request.user)
+            return profile
+    
+class CommunityListCreate(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['name', 'description', 'category']
+    ordering_fields = ['name', 'created_at', 'member_count']
+    
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return CreateCommunitySerializer
+        return CommunitySerializer
+    
+    def get_queryset(self):
+        queryset = Community.objects.annotate(
+            member_count=models.Count('members')
+        )
+        
+        # Filter by category if provided
+        category = self.request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category=category)
+        
+        # Filter by membership status if provided
+        membership = self.request.query_params.get('membership')
+        if membership and self.request.user.is_authenticated:
+            if membership == 'joined':
+                queryset = queryset.filter(members__user=self.request.user)
+            elif membership == 'not_joined':
+                queryset = queryset.exclude(members__user=self.request.user)
+        
+        return queryset
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        
+        # Return the full community data including calculated fields
+        community = Community.objects.get(id=serializer.data['id'])
+        response_serializer = CommunitySerializer(community, context={'request': request})
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
+class CommunityDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Community.objects.all()
+    serializer_class = CommunitySerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+    
+    def perform_destroy(self, instance):
+        # Only allow deletion by admin members
+        membership = instance.members.filter(
+            user=self.request.user,
+            role='admin'
+        ).first()
+        if not membership:
+            raise PermissionDenied("Only community admins can delete the community.")
+        super().perform_destroy(instance)
+
+class MembershipView(generics.CreateAPIView, generics.DestroyAPIView):
+    serializer_class = MembershipSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return Membership.objects.filter(user=self.request.user)
+    
+    def create(self, request, *args, **kwargs):
+        try:
+            community = Community.objects.get(id=kwargs.get('pk'))
+        except Community.DoesNotExist:
+            return Response(
+                {"detail": "Community not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Check if already a member
+        if Membership.objects.filter(user=request.user, community=community).exists():
+            return Response(
+                {"detail": "You are already a member of this community."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Create membership with default 'member' role
+        membership = Membership.objects.create(
+            user=request.user,
+            community=community,
+            role='member'
+        )
+        
+        # Return the updated community data
+        community_serializer = CommunitySerializer(community, context={'request': request})
+        return Response(community_serializer.data, status=status.HTTP_201_CREATED)
+    
+    def destroy(self, request, *args, **kwargs):
+        community_id = kwargs.get('pk')
+        try:
+            membership = Membership.objects.get(
+                user=request.user,
+                community_id=community_id
+            )
+        except Membership.DoesNotExist:
+            return Response(
+                {"detail": "You are not a member of this community."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Prevent admins from leaving (must transfer admin first)
+        if membership.role == 'admin':
+            other_admins = Membership.objects.filter(
+                community=membership.community,
+                role='admin'
+            ).exclude(user=request.user).exists()
+            if not other_admins:
+                return Response(
+                    {"detail": "You are the only admin. Assign another admin before leaving."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        
+        membership.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

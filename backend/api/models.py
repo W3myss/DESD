@@ -39,3 +39,38 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s Profile"
+    
+class Community(models.Model):
+    CATEGORY_CHOICES = [
+        ('academic', 'Academic'),
+        ('social', 'Social'),
+        ('sports', 'Sports'),
+        ('clubs', 'Clubs'),
+    ]
+    
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField()
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='academic')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="created_communities")
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.name
+
+class Membership(models.Model):
+    ROLE_CHOICES = [
+        ('member', 'Member'),
+        ('admin', 'Admin'),
+        ('moderator', 'Moderator'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="memberships")
+    community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name="members")
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='member')
+    joined_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('user', 'community')
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.community.name} ({self.role})"

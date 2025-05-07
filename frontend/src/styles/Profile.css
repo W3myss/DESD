@@ -1,0 +1,99 @@
+.profile-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+  }
+  
+  .profile-header h1 {
+    color: #333;
+    font-size: 2rem;
+    margin: 0;
+  }
+  
+  .edit-profile-btn, .save-btn {
+    background-color: #4346ff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+  }
+  
+  .edit-profile-btn:hover, .save-btn:hover {
+    background-color: #3333cc;
+  }
+  
+  .profile-info {
+    background-color: #f8f8f8;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+  }
+  
+  .profile-info p {
+    margin: 10px 0;
+    line-height: 1.6;
+  }
+  
+  .profile-form {
+    background-color: #f8f8f8;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+  }
+  
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  
+  .form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+  
+  .profile-section {
+    margin-bottom: 40px;
+  }
+  
+  .profile-section h2 {
+    color: #333;
+    border-bottom: 2px solid #4346ff;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .communities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+  }
+  
+  .posts-list {
+    display: grid;
+    gap: 20px;
+  }

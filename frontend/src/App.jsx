@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
+import Communities from "./pages/Communities";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -30,10 +31,18 @@ function App() {
           }
         />
         <Route
-          path="/profile"
+          path="/profile/:username?"
           element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/communities"
+          element={
+            <ProtectedRoute>
+              <Communities />
             </ProtectedRoute>
           }
         />

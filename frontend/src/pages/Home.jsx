@@ -9,6 +9,7 @@ function Home() {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showPostForm, setShowPostForm] = useState(false);
+  const [availableCommunities, setAvailableCommunities] = useState([]);
   const [filters, setFilters] = useState({
     category: "all",
     community: "all",
@@ -21,6 +22,12 @@ function Home() {
 
   useEffect(() => {
     fetchPosts();
+    // Fetch actual communities from API
+    api.get("/api/communities/")
+      .then(res => {
+        setAvailableCommunities(res.data);
+      })
+      .catch(err => console.error(err));
   }, [filters]);
 
   const fetchPosts = () => {
@@ -43,7 +50,10 @@ function Home() {
   };
 
   const createPost = (postData) => {
-    api.post("/api/notes/", postData)
+    api.post("/api/notes/", {
+      ...postData,
+      community: postData.community.id // Send community ID instead of name
+    })
       .then(res => {
         setShowPostForm(false);
         fetchPosts();
@@ -109,13 +119,13 @@ function Home() {
       </div>
 
       {showPostForm && (
-        <PostForm 
-          onSubmit={createPost} 
-          onCancel={() => setShowPostForm(false)}
-          categories={categories.filter(c => c !== "All")}
-          communities={communities.filter(c => c !== "All")}
-        />
-      )}
+          <PostForm 
+            onSubmit={createPost} 
+            onCancel={() => setShowPostForm(false)}
+            categories={categories.filter(c => c !== "All")}
+            communities={availableCommunities}
+          />
+        )}
 
       <div className="posts-feed">
         {isLoading ? (

@@ -24,6 +24,14 @@ function Navbar() {
           HOME
         </NavLink>
         <NavLink 
+          to="/communities" 
+          className={({ isActive }) => 
+            isActive ? "navbar-title active" : "navbar-title"
+          }
+        >
+          COMMUNITIES
+        </NavLink>
+        <NavLink 
           to="/profile" 
           className={({ isActive }) => 
             isActive ? "navbar-title active" : "navbar-title"
