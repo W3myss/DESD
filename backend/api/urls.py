@@ -9,6 +9,7 @@ urlpatterns = [
     path("profiles/<str:username>/", views.ProfileView.as_view(), name="profile-detail"),
     path("communities/", views.CommunityListCreate.as_view(), name="community-list"),
     path("communities/<int:pk>/", views.CommunityDetail.as_view(), name="community-detail"),
+    path("communities/slug/<slug:slug>/", views.CommunityDetailBySlug.as_view(), name="community-detail-slug"),
     path("communities/<int:pk>/join/", views.MembershipView.as_view(), name="join-community"),
     path("communities/<int:pk>/leave/", views.MembershipView.as_view(), name="leave-community"),
     path('events/', EventListCreateView.as_view(), name='event-list-create'),

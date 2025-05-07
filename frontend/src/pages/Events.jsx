@@ -35,6 +35,10 @@ function EventList() {
 
     const handleCreateEvent = (e) => {
         e.preventDefault();
+        if (!newEvent.title || !newEvent.description || !newEvent.date || !newEvent.time) {
+            alert("All fields are required.");
+            return;
+        }
         api.post('/api/events/', newEvent)
             .then((response) => {
                 setEvents((prev) => [response.data, ...prev]);

@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import "../styles/PostForm.css";
 
-function PostForm({ onSubmit, onCancel, categories, communities }) {
+function PostForm({ onSubmit, onCancel, categories = [], communities = [], defaultCommunity }) {
+  console.log("PostForm props:", { onSubmit, onCancel, categories, defaultCommunity });
   const transformedCategories = categories.map(cat => ({
     display: cat,
     value: cat.toLowerCase().replace(' ', '_')
@@ -16,7 +17,7 @@ function PostForm({ onSubmit, onCancel, categories, communities }) {
     title: "",
     content: "",
     category: transformedCategories[0].value,
-    community: transformedCommunities[0].value
+    community: defaultCommunity || ""
   });
 
   const handleChange = (e) => {

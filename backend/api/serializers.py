@@ -45,7 +45,7 @@ class CommunitySerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Community
-        fields = ['id', 'name', 'description', 'category', 'created_by', 'created_at', 
+        fields = ['id', 'name', 'slug', 'description', 'category', 'created_by', 'created_at', 
                  'member_count', 'is_member', 'user_role']
         read_only_fields = ['id', 'created_by', 'created_at']
     
@@ -98,5 +98,5 @@ from .models import Event
 class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
-        fields = ['id', 'title', 'description', 'date', 'time', 'location', 'virtual_link', 'event_type', 'created_at', 'created_by']
-        read_only_fields = ['created_by']
+        fields = ['id', 'title', 'description', 'date', 'time', 'event_type', 'created_by']
+        read_only_fields = ['id', 'created_by']

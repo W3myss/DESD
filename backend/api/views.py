@@ -194,6 +194,7 @@ class MembershipView(generics.CreateAPIView, generics.DestroyAPIView):
         # Return the updated community data
         community_serializer = CommunitySerializer(community, context={'request': request})
         return Response(community_serializer.data, status=status.HTTP_201_CREATED)
+
     
     def destroy(self, request, *args, **kwargs):
         community_id = kwargs.get('pk')
@@ -222,6 +223,12 @@ class MembershipView(generics.CreateAPIView, generics.DestroyAPIView):
         
         membership.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+        
+class CommunityDetailBySlug(generics.RetrieveAPIView):
+    queryset = Community.objects.all()
+    serializer_class = CommunitySerializer
+    lookup_field = 'slug'
 
 class EventListCreateView(generics.ListCreateAPIView):
     queryset = Event.objects.all()
@@ -233,7 +240,6 @@ class EventListCreateView(generics.ListCreateAPIView):
 class EventDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def perform_destroy(self, instance):
         if instance.created_by != self.request.user:

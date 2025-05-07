@@ -7,6 +7,7 @@ import Profile from "./pages/Profile";
 import Communities from "./pages/Communities";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import CommunityPage from './pages/CommunityPage';
 import Events from "./pages/Events";
 
 function Logout() {
@@ -21,7 +22,7 @@ function RegisterAndLogout() {
 
 function App() {
   return (
-    <BrowserRouter>
+    
       <Routes>
         <Route
           path="/"
@@ -40,13 +41,21 @@ function App() {
           }
         />
         <Route
-          path="/communities"
+          path="/communities/"
           element={
             <ProtectedRoute>
               <Communities />
             </ProtectedRoute>
           }
         />
+        <Route 
+          path="/communities/:slug" 
+          element={
+            <ProtectedRoute>
+              <CommunityPage />
+            </ProtectedRoute>
+            }
+          />
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/register" element={<RegisterAndLogout />} />
@@ -60,7 +69,7 @@ function App() {
           }
         />
       </Routes>
-    </BrowserRouter>
+    
   );
 }
 
