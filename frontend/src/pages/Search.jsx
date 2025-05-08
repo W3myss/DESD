@@ -31,19 +31,19 @@ function UserCard({ user }) {
 }
 
 function Search() {
+  const [username, setUsername] = useState("");
   const [course, setCourse] = useState("");
-  const [year, setYear] = useState("");
   const [interests, setInterests] = useState("");
   const [students, setStudents] = useState([]);
 
   const handleSearch = async () => {
-    if (!course && !year && !interests) {
+    if (!username && !course && !interests) {
       alert("Please enter at least one filter to search.");
       return;
     }
 
     try {
-      const response = await api.get(`/api/search/students/?course=${course}&year=${year}&interests=${interests}`);
+      const response = await api.get(`/api/search/students/?username=${username}&course=${course}&interests=${interests}`);
       console.log("Students Response:", response.data);
       setStudents(response.data);
     } catch (err) {
@@ -58,15 +58,15 @@ function Search() {
         <h1>Search Students</h1>
         <input
           type="text"
-          placeholder="Filter by course..."
-          value={course}
-          onChange={(e) => setCourse(e.target.value)}
+          placeholder="Filter by username..."
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
         />
         <input
           type="text"
-          placeholder="Filter by year..."
-          value={year}
-          onChange={(e) => setYear(e.target.value)}
+          placeholder="Filter by course..."
+          value={course}
+          onChange={(e) => setCourse(e.target.value)}
         />
         <input
           type="text"
