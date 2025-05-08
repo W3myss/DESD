@@ -135,11 +135,40 @@ class CreateCommunitySerializer(serializers.ModelSerializer):
 from .models import Event
 
 class EventSerializer(serializers.ModelSerializer):
+    user_role = serializers.SerializerMethodField()
+    community = serializers.CharField(source='community.name', read_only=True)
+    community_id = serializers.IntegerField(write_only=True)
+
     class Meta:
         model = Event
-        fields = ['id', 'title', 'description', 'date', 'time', 'event_type', 'created_by']
-        read_only_fields = ['id', 'created_by']
+        fields = [
+            'id', 'title', 'description', 'date', 'time', 'event_type',
+            'max_capacity', 'required_materials', 'created_by', 'created_at',
+            'community', 'community_id', 'user_role'
+        ]
+        read_only_fields = ['created_by', 'created_at']
 
+    def create(self, validated_data):
+        community_id = validated_data.pop('community_id')
+        try:
+            community = Community.objects.get(id=community_id)
+        except Community.DoesNotExist:
+            raise serializers.ValidationError({'community_id': 'Invalid community ID.'})
+        
+        validated_data['community'] = community
+        validated_data['created_by'] = self.context['request'].user
+        return super().create(validated_data)
+
+    def get_user_role(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return None
+        try:
+            membership = Membership.objects.get(community=obj.community, user=request.user)
+            return membership.role
+        except Membership.DoesNotExist:
+            return None
+    
 class FriendRequestSerializer(serializers.ModelSerializer):
     sender = serializers.ReadOnlyField(source='sender.username')
     receiver = serializers.ReadOnlyField(source='receiver.username')

@@ -12,6 +12,16 @@ function CommunityPage() {
   const [loading, setLoading] = useState(true);
   const [showPostForm, setShowPostForm] = useState(false);
   const [members, setMembers] = useState([]);
+  const [newEvent, setNewEvent] = useState({
+    title: '',
+    description: '',
+    date: '',
+    time: '',
+    event_type: 'in_person',
+    max_capacity: '',
+    required_materials: ''
+  });
+  const [showCreateEventForm, setShowCreateEventForm] = useState(false);
 
   useEffect(() => {
     fetchCommunityDetails();
@@ -71,6 +81,50 @@ function CommunityPage() {
     api.delete(`/api/notes/delete/${postId}/`)
       .then(() => setPosts(prev => prev.filter(p => p.id !== postId)))
       .catch(err => console.error(err));
+  };
+
+  const handleCreateEvent = (e) => {
+    e.preventDefault();
+  
+    if (!newEvent.title || !newEvent.description || !newEvent.date || !newEvent.time) {
+      alert("All fields are required.");
+      return;
+    }
+  
+    if (!community?.id) {
+      alert("Community is not loaded yet.");
+      return;
+    }
+  
+    const payload = {
+        title: newEvent.title,
+        description: newEvent.description,
+        date: newEvent.date,
+        time: newEvent.time,
+        event_type: newEvent.event_type,
+        max_capacity: newEvent.max_capacity || null,
+        required_materials: newEvent.required_materials || '',
+        community_id: community.id  // 👈 not 'community'
+      };
+  
+    api.post('/api/events/', payload)
+      .then(() => {
+        alert("Event created successfully!");
+        setNewEvent({
+          title: '',
+          description: '',
+          date: '',
+          time: '',
+          event_type: 'in_person',
+          max_capacity: '',
+          required_materials: ''
+        });
+        setShowCreateEventForm(false);
+      })
+      .catch((err) => {
+        console.error("Error creating event:", err.response?.data || err);
+        alert("Failed to create event.");
+      });
   };
 
   if (loading) return <p>Loading...</p>;
@@ -177,6 +231,82 @@ function CommunityPage() {
           </div>
         ))
       )}
+      {(community.user_role === 'moderator' || community.user_role === 'admin' || community.is_global_admin) && (
+        <div className="event-create-toggle" style={{ marginTop: '2rem' }}>
+            <button onClick={() => setShowCreateEventForm(prev => !prev)}>
+                {showCreateEventForm ? 'Cancel Event Creation' : '+ Create Event'}
+            </button>
+
+    {showCreateEventForm && (
+      <form onSubmit={handleCreateEvent} style={{ marginTop: '10px' }}>
+        <div>
+          <label>Title:</label>
+          <input
+            type="text"
+            value={newEvent.title}
+            onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+            required
+          />
+        </div>
+        <div>
+          <label>Description:</label>
+          <textarea
+            value={newEvent.description}
+            onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+            required
+          />
+        </div>
+        <div>
+          <label>Date:</label>
+          <input
+            type="date"
+            value={newEvent.date}
+            onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+            required
+          />
+        </div>
+        <div>
+          <label>Time:</label>
+          <input
+            type="time"
+            value={newEvent.time}
+            onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
+            required
+          />
+        </div>
+        <div>
+          <label>Event Type:</label>
+          <select
+            value={newEvent.event_type}
+            onChange={(e) => setNewEvent({ ...newEvent, event_type: e.target.value })}
+          >
+            <option value="in_person">In-Person</option>
+            <option value="virtual">Virtual</option>
+          </select>
+        </div>
+        <div>
+            <label>Max Capacity:</label>
+            <input
+                type="number"
+                value={newEvent.max_capacity}
+                onChange={(e) => setNewEvent({ ...newEvent, max_capacity: e.target.value })}
+                min="1"
+            />
+        </div>
+
+        <div>
+            <label>Required Materials:</label>
+            <textarea
+                value={newEvent.required_materials}
+                onChange={(e) => setNewEvent({ ...newEvent, required_materials: e.target.value })}
+                placeholder="List materials needed, if any"
+            />
+        </div>
+        <button type="submit">Create Event</button>
+      </form>
+    )}
+  </div>
+)}
     </div>
   );
 } 

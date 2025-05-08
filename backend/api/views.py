@@ -441,6 +441,26 @@ class UpdateMembershipRoleView(APIView):
         except (Community.DoesNotExist, User.DoesNotExist, Membership.DoesNotExist):
             return Response({'detail': 'User or community not found'}, status=status.HTTP_404_NOT_FOUND)
         
+class EventDeleteView(generics.DestroyAPIView):
+    queryset = Event.objects.all()
+    permission_classes = [IsAuthenticated]
+
+    def perform_destroy(self, instance):
+        user = self.request.user
+        is_creator = instance.created_by == user
+        is_global_admin = getattr(user, 'is_global_admin', False)
+
+        is_community_admin_or_mod = Membership.objects.filter(
+            user=user,
+            community=instance.community,
+            role__in=["admin", "moderator"]
+        ).exists()
+
+        if not (is_creator or is_global_admin or is_community_admin_or_mod):
+            raise PermissionDenied("You don't have permission to delete this event.")
+
+        instance.delete()
+
 class MembershipUpdateView(generics.UpdateAPIView):
     queryset = Membership.objects.all()
     serializer_class = MembershipSerializer

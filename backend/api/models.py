@@ -130,6 +130,9 @@ class Event(models.Model):
         choices=[('in_person', 'In-Person'), ('virtual', 'Virtual')],
         default='in_person'
     )
+    max_capacity = models.PositiveIntegerField(null=True, blank=True)
+    required_materials = models.TextField(blank=True, null=True)
+    community = models.ForeignKey('Community', on_delete=models.CASCADE, related_name='events', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='created_events')
 

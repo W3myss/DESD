@@ -4,7 +4,7 @@ from .views import EventListCreateView, EventDetailView
 from .views import FriendRequestView
 from .views import FriendsListView
 from .views import RemoveFriendView
-
+from .views import EventDeleteView
 
 
 urlpatterns = [
@@ -27,6 +27,7 @@ urlpatterns = [
     path("communities/slug/<slug:slug>/posts/", views.CommunityPostsView.as_view(), name="community-posts"),
     path("communities/<int:community_id>/set_role/", views.UpdateMembershipRoleView.as_view(), name="set-role"),
     path("communities/<int:pk>/members/", views.CommunityMembersView.as_view(), name="community-members"),
-    path("memberships/<int:pk>/", views.MembershipUpdateView.as_view(), name="membership-update")
+    path("memberships/<int:pk>/", views.MembershipUpdateView.as_view(), name="membership-update"),
+    path('events/<int:pk>/', EventDeleteView.as_view(), name='event-delete'),
 
 ]

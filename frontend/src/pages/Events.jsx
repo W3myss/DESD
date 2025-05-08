@@ -134,13 +134,37 @@ function EventList() {
             )}
             <ul>
                 {filteredEvents.map((event) => (
-                    <li key={event.id}>
+                    <li key={event.id} style={{ border: '1px solid #ccc', padding: '15px', marginBottom: '10px' }}>
                         <h3>{event.title}</h3>
-                        <p>{event.description}</p>
-                        <p>Date: {event.date}</p>
-                        <p>Time: {event.time}</p>
-                        <p>Type: {event.event_type}</p>
-                        <button onClick={() => handleDeleteEvent(event.id)}>Delete</button>
+                        <p><strong>Description:</strong> {event.description}</p>
+                        <p><strong>Date:</strong> {event.date}</p>
+                        <p><strong>Time:</strong> {event.time}</p>
+                        <p><strong>Type:</strong> {event.event_type === 'virtual' ? 'Virtual' : 'In-Person'}</p>
+
+                        {event.community && (
+                            <p><strong>Community:</strong> {event.community}</p>
+                        )}
+                        {event.max_capacity && (
+                            <p><strong>Max Capacity:</strong> {event.max_capacity}</p>
+                        )}
+                        {event.required_materials && (
+                            <p><strong>Required Materials:</strong> {event.required_materials}</p>
+                        )}
+                        {event.location && (
+                            <p><strong>Location:</strong> {event.location}</p>
+                        )}
+                        {event.virtual_link && (
+                            <p>
+                                <strong>Virtual Link:</strong>{' '}
+                                <a href={event.virtual_link} target="_blank" rel="noreferrer">
+                                    {event.virtual_link}
+                                </a>
+                            </p>
+                        )}
+
+                        {event.user_role === 'admin' || event.user_role === 'moderator' || event.is_global_admin ? (
+                            <button onClick={() => handleDeleteEvent(event.id)}>Delete</button>
+                        ) : null}
                     </li>
                 ))}
             </ul>
