@@ -169,17 +169,12 @@ class CommunityListCreate(generics.ListCreateAPIView):
         
         # Filter by membership status if provided
         membership = self.request.query_params.get('membership')
-        user_filter = self.request.query_params.get('user')
-        
-        if membership and user_filter:
-            try:
-                user = User.objects.get(username=user_filter)
-                if membership == 'joined':
-                    queryset = queryset.filter(members__user=user)
-                elif membership == 'not_joined':
-                    queryset = queryset.exclude(members__user=user)
-            except User.DoesNotExist:
-                pass
+
+        if membership and self.request.user.is_authenticated:
+            if membership == 'joined':
+                queryset = queryset.filter(members__user=self.request.user)
+            elif membership == 'not_joined':
+                queryset = queryset.exclude(members__user=self.request.user)
         
         return queryset
     
