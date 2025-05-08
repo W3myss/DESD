@@ -46,7 +46,12 @@ class NoteListCreate(generics.ListCreateAPIView):
     def get_queryset(self):
         queryset = Note.objects.all()
         
-        # Apply filters if provided
+        # Get the author filter from query params
+        author = self.request.query_params.get('author')
+        if author:
+            queryset = queryset.filter(author__username=author)
+        
+        # Apply other filters if provided
         category = self.request.query_params.get('category')
         community = self.request.query_params.get('community')
         
