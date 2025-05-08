@@ -37,11 +37,12 @@ class NoteSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
+    profile_pic = serializers.ImageField(required=False, allow_null=True)
     
     class Meta:
         model = Profile
         fields = [
-            'id', 'username', 'university_email', 'address', 'dob', 
+            'id', 'username', 'profile_pic', 'university_email', 'address', 'dob', 
             'course', 'interests', 'bio', 'achievements', 
             'created_at', 'updated_at'
         ]
@@ -77,9 +78,10 @@ class CommunitySerializer(serializers.ModelSerializer):
     
     def get_is_member(self, obj):
         request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            return obj.members.filter(user=request.user).exists()
-        return False
+        if not request or not request.user.is_authenticated:
+            return False
+            
+        return obj.members.filter(user=request.user).exists()
     
     def get_is_global_admin(self, obj):
         request = self.context.get('request')
@@ -87,10 +89,11 @@ class CommunitySerializer(serializers.ModelSerializer):
     
     def get_user_role(self, obj):
         request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            membership = obj.members.filter(user=request.user).first()
-            return membership.role if membership else None
-        return None
+        if not request or not request.user.is_authenticated:
+            return None
+            
+        membership = obj.members.filter(user=request.user).first()
+        return membership.role if membership else None
 
 class MembershipSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.username')

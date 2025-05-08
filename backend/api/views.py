@@ -92,27 +92,46 @@ class ProfileView(generics.RetrieveUpdateAPIView):
     lookup_url_kwarg = 'username'
 
     def get_queryset(self):
-        return Profile.objects.all()
+        queryset = Community.objects.annotate(
+            member_count=models.Count('members')
+        )
+        
+        # Filter by category if provided
+        category = self.request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category=category)
+        
+        # Filter by membership status if provided
+        membership = self.request.query_params.get('membership')
+        user_filter = self.request.query_params.get('user')
+        
+        if membership and user_filter:
+            try:
+                user = User.objects.get(username=user_filter)
+                if membership == 'joined':
+                    queryset = queryset.filter(members__user=user)
+                elif membership == 'not_joined':
+                    queryset = queryset.exclude(members__user=user)
+            except User.DoesNotExist:
+                pass
+        
+        return queryset
 
     def get_object(self):
         if 'username' in self.kwargs:
-            # Viewing another user's profile
             username = self.kwargs['username']
             return get_object_or_404(Profile, user__username=username)
         else:
-            # Viewing own profile
             profile, created = Profile.objects.get_or_create(user=self.request.user)
             return profile
 
-    def get_object(self):
-        if 'username' in self.kwargs:
-            # Viewing another user's profile
-            username = self.kwargs['username']
-            return get_object_or_404(Profile, user__username=username)
-        else:
-            # Viewing own profile
-            profile, created = Profile.objects.get_or_create(user=self.request.user)
-            return profile
+    def perform_update(self, serializer):
+        # Handle file deletion if needed
+        if 'profile_pic' in self.request.data and self.request.data['profile_pic'] == 'null':
+            instance = self.get_object()
+            if instance.profile_pic:
+                instance.profile_pic.delete()
+        serializer.save()
     
 class CommunityListCreate(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -137,11 +156,17 @@ class CommunityListCreate(generics.ListCreateAPIView):
         
         # Filter by membership status if provided
         membership = self.request.query_params.get('membership')
-        if membership and self.request.user.is_authenticated:
-            if membership == 'joined':
-                queryset = queryset.filter(members__user=self.request.user)
-            elif membership == 'not_joined':
-                queryset = queryset.exclude(members__user=self.request.user)
+        user_filter = self.request.query_params.get('user')
+        
+        if membership and user_filter:
+            try:
+                user = User.objects.get(username=user_filter)
+                if membership == 'joined':
+                    queryset = queryset.filter(members__user=user)
+                elif membership == 'not_joined':
+                    queryset = queryset.exclude(members__user=user)
+            except User.DoesNotExist:
+                pass
         
         return queryset
     

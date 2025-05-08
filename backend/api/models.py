@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.utils.text import slugify
 from django.db import models
 from django.contrib.auth.models import User
+import os
+from django.utils import timezone
 
 
 class Note(models.Model):
@@ -30,8 +32,13 @@ class Note(models.Model):
     def __str__(self):
         return self.title
     
+def profile_pic_upload_path(instance, filename):
+    # This will save files to MEDIA_ROOT/profile_pics/user_<id>/<filename>
+    return f'profile_pics/user_{instance.user.id}/{timezone.now().timestamp()}_{filename}'
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    profile_pic = models.ImageField(upload_to=profile_pic_upload_path, blank=True, null=True)
     university_email = models.EmailField(blank=True, null=True)
     address = models.TextField(blank=True, null=True)
     dob = models.DateField(blank=True, null=True)
