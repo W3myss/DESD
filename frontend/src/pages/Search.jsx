@@ -3,17 +3,30 @@ import api from "../api";
 import Navbar from "../components/Navbar";
 
 function UserCard({ user }) {
+  // Fetch or define the current user
+  const currentUser = JSON.parse(localStorage.getItem("currentUser")); // Example: Fetch from localStorage
+
   const handleSendRequest = () => {
-      api.post('/api/friend-requests/', { receiver_id: user.id })
-          .then(() => alert('Friend request sent!'))
-          .catch(err => console.error(err));
+    if (user.id === currentUser?.id) {
+      alert("You cannot add yourself as a friend.");
+      return;
+    }
+    api.post('/api/friend-requests/', { receiver_id: user.id })
+      .then(() => alert('Friend request sent!'))
+      .catch(err => {
+        if (err.response?.data?.detail) {
+          alert(err.response.data.detail);
+        } else {
+          console.error(err);
+        }
+      });
   };
 
   return (
-      <div className="user-card">
-          <p>{user.username}</p>
-          <button onClick={handleSendRequest}>Add Friend</button>
-      </div>
+    <div className="user-card">
+      <p>{user.username}</p>
+      <button onClick={handleSendRequest}>Add Friend</button>
+    </div>
   );
 }
 

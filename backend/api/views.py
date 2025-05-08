@@ -354,8 +354,16 @@ class FriendRequestView(APIView):
         receiver_id = request.data.get('receiver_id')
         try:
             receiver = User.objects.get(id=receiver_id)
-            if FriendRequest.objects.filter(sender=request.user, receiver=receiver, status='pending').exists():
-                return Response({"detail": "Friend request already sent."}, status=status.HTTP_400_BAD_REQUEST)
+            if receiver == request.user:
+                return Response({"detail": "You cannot add yourself as a friend."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Prevent duplicate friend requests
+            if FriendRequest.objects.filter(
+                models.Q(sender=request.user, receiver=receiver) | 
+                models.Q(sender=receiver, receiver=request.user)
+            ).exists():
+                return Response({"detail": "Friend request already exists."}, status=status.HTTP_400_BAD_REQUEST)
+            
             FriendRequest.objects.create(sender=request.user, receiver=receiver)
             return Response({"detail": "Friend request sent."}, status=status.HTTP_201_CREATED)
         except User.DoesNotExist:
@@ -373,7 +381,6 @@ class FriendRequestView(APIView):
             if action == 'accept':
                 friend_request.status = 'accepted'
                 friend_request.save()
-                # Add both users to each other's friend lists (if applicable)
                 return Response({"detail": "Friend request accepted."})
             elif action == 'decline':
                 friend_request.delete()
