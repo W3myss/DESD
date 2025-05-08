@@ -5,6 +5,7 @@ from .models import Profile
 from .models import Community
 from .models import Membership
 from .models import Event
+from .models import FriendRequest
 from .models import Tag
 
 
@@ -138,3 +139,11 @@ class EventSerializer(serializers.ModelSerializer):
         model = Event
         fields = ['id', 'title', 'description', 'date', 'time', 'event_type', 'created_by']
         read_only_fields = ['id', 'created_by']
+
+class FriendRequestSerializer(serializers.ModelSerializer):
+    sender = serializers.ReadOnlyField(source='sender.username')
+    receiver = serializers.ReadOnlyField(source='receiver.username')
+
+    class Meta:
+        model = FriendRequest
+        fields = ['id', 'sender', 'receiver', 'status', 'created_at']

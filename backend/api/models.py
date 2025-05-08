@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
+from django.db import models
+from django.contrib.auth.models import User
 import os
 from django.utils import timezone
 
@@ -41,6 +43,7 @@ class Profile(models.Model):
     address = models.TextField(blank=True, null=True)
     dob = models.DateField(blank=True, null=True)
     course = models.CharField(max_length=100, blank=True, null=True)
+    year = models.CharField(max_length=10, blank=True, null=True)  # Add this line
     interests = models.TextField(blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
     achievements = models.TextField(blank=True, null=True)
@@ -117,3 +120,11 @@ class Event(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='created_events')
 
+class FriendRequest(models.Model):
+    sender = models.ForeignKey(User, related_name='sent_requests', on_delete=models.CASCADE)
+    receiver = models.ForeignKey(User, related_name='received_requests', on_delete=models.CASCADE)
+    status = models.CharField(max_length=10, choices=[('pending', 'Pending'), ('accepted', 'Accepted')], default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.sender.username} -> {self.receiver.username} ({self.status})"

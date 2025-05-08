@@ -1,6 +1,10 @@
 from django.urls import path
 from . import views
 from .views import EventListCreateView, EventDetailView
+from .views import FriendRequestView
+from .views import FriendsListView
+from .views import RemoveFriendView
+
 
 urlpatterns = [
     path("notes/", views.NoteListCreate.as_view(), name="note-list"),
@@ -14,5 +18,10 @@ urlpatterns = [
     path("communities/<int:pk>/leave/", views.MembershipView.as_view(), name="leave-community"),
     path('events/', EventListCreateView.as_view(), name='event-list-create'),
     path('events/<int:pk>/', EventDetailView.as_view(), name='event-detail'),
+    path('search/students/', views.search_students, name='search_students'),
+    path("friend-requests/", FriendRequestView.as_view(), name="friend-requests"),
+    path("friend-requests/<int:pk>/", FriendRequestView.as_view(), name="friend-request-detail"),
+    path("friends/", FriendsListView.as_view(), name="friends-list"),
+    path("friends/<int:pk>/remove/", RemoveFriendView.as_view(), name="remove-friend"),
     path("communities/slug/<slug:slug>/posts/", views.CommunityPostsView.as_view(), name="community-posts")
 ]

@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CommunityPage from './pages/CommunityPage';
 import Events from "./pages/Events";
+import Search from "./pages/Search";
 
 function Logout() {
   localStorage.clear();
@@ -56,6 +57,14 @@ function App() {
             </ProtectedRoute>
             }
           />
+          <Route
+          path="/search" // Add the search route
+          element={
+            <ProtectedRoute>
+              <Search />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/register" element={<RegisterAndLogout />} />
