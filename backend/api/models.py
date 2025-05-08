@@ -25,7 +25,7 @@ class Note(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notes")
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='academic')
-    community = models.CharField(max_length=20, choices=COMMUNITY_CHOICES, default='cs101')
+    community = models.ForeignKey('Community', on_delete=models.CASCADE, related_name="notes")
 
     def __str__(self):
         return self.title
@@ -46,6 +46,12 @@ class Profile(models.Model):
     def __str__(self):
         return f"{self.user.username}'s Profile"
     
+class Tag(models.Model):
+    name = models.CharField(max_length=30, unique=True)
+
+    def __str__(self):
+        return self.name
+
 class Community(models.Model):
     CATEGORY_CHOICES = [
         ('academic', 'Academic'),
@@ -60,6 +66,7 @@ class Community(models.Model):
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='academic')
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="created_communities")
     created_at = models.DateTimeField(auto_now_add=True)
+    tags = models.ManyToManyField(Tag, blank=True, related_name='communities')
     
     def save(self, *args, **kwargs):
         if not self.slug:

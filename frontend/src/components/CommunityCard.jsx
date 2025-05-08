@@ -40,6 +40,15 @@ function CommunityCard({ community, onJoin, onLeave, onDelete }) {
         </div>
         
         <p className="community-description">{community.description}</p>
+        {community.tags && community.tags.length > 0 && (
+          <div className="community-tags">
+            {community.tags.map((tag, index) => (
+              <span key={index} className="tag">
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
         
         <div className="community-meta">
           <span>Created by: {community.created_by}</span>
@@ -54,10 +63,10 @@ function CommunityCard({ community, onJoin, onLeave, onDelete }) {
             {community.is_member ? 'Leave' : 'Join'}
           </button>
           
-          {community.user_role === 'admin' && (
+          {(community.user_role === 'admin' || community.is_global_admin) && (
             <button 
               className="action-btn delete"
-              onClick={handleDelete}
+              onClick={() => onDelete(community.id)}
             >
               Delete
             </button>

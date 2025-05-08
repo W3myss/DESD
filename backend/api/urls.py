@@ -23,4 +23,5 @@ urlpatterns = [
     path("friend-requests/<int:pk>/", FriendRequestView.as_view(), name="friend-request-detail"),
     path("friends/", FriendsListView.as_view(), name="friends-list"),
     path("friends/<int:pk>/remove/", RemoveFriendView.as_view(), name="remove-friend"),
+    path("communities/slug/<slug:slug>/posts/", views.CommunityPostsView.as_view(), name="community-posts")
 ]

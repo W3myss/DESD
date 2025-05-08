@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.models import User
-from rest_framework import generics
+from rest_framework import generics, views
 from .serializers import UserSerializer, NoteSerializer, ProfileSerializer, CommunitySerializer, MembershipSerializer, CreateCommunitySerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Note, Community, Membership, Profile
@@ -33,6 +33,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated
+
 
 
 
@@ -74,6 +75,8 @@ class NoteDelete(generics.DestroyAPIView):
 
     def get_queryset(self):
         user = self.request.user
+        if user.is_staff:  # or `user.is_superuser` or your custom flag
+            return Note.objects.all()
         return Note.objects.filter(author=user)
 
 
@@ -114,7 +117,7 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 class CommunityListCreate(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['name', 'description', 'category']
+    search_fields = ['name', 'description', 'category', 'tags__name']
     ordering_fields = ['name', 'created_at', 'member_count']
     
     def get_serializer_class(self):
@@ -174,14 +177,13 @@ class CommunityDetail(generics.RetrieveUpdateDestroyAPIView):
         return context
     
     def perform_destroy(self, instance):
-        # Only allow deletion by admin members
-        membership = instance.members.filter(
-            user=self.request.user,
-            role='admin'
-        ).first()
-        if not membership:
-            raise PermissionDenied("Only community admins can delete the community.")
-        super().perform_destroy(instance)
+        user = self.request.user
+        is_admin_member = instance.members.filter(user=user, role='admin').exists()
+    
+        if not is_admin_member and not user.is_superuser:
+            raise PermissionDenied("Only community admins or global admins can delete the community.")
+
+        instance.delete()
 
 class MembershipView(generics.CreateAPIView, generics.DestroyAPIView):
     serializer_class = MembershipSerializer
@@ -251,6 +253,20 @@ class CommunityDetailBySlug(generics.RetrieveAPIView):
     queryset = Community.objects.all()
     serializer_class = CommunitySerializer
     lookup_field = 'slug'
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
+class CommunityPostsView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, slug):
+        community = get_object_or_404(Community, slug=slug)
+        notes = Note.objects.filter(community=community)
+        serializer = NoteSerializer(notes, many=True)
+        return Response(serializer.data)
 
 class EventListCreateView(generics.ListCreateAPIView):
     queryset = Event.objects.all()

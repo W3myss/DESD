@@ -100,7 +100,8 @@ function Communities() {
         <h1>University Communities</h1>
         <button 
           className="create-community-btn"
-          onClick={() => setShowCreateForm(true)}
+          onClick={() => setShowCreateForm(prev => !prev)}
+
         >
           + Create New Community
         </button>
@@ -150,7 +151,7 @@ function Communities() {
           <label>Search:</label>
           <input 
             type="text" 
-            placeholder="Search communities..."
+            placeholder="Search communities and tags..."
             value={filters.search}
             onChange={(e) => setFilters({...filters, search: e.target.value})}
           />
