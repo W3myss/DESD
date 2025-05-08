@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import api from "../api";
 import Navbar from "../components/Navbar";
 import PostForm from "../components/PostForm";
-import "../styles/CommunityPage.css"; // Create this file if it doesn't exist
+import "../styles/CommunityPage.css";
 
 function CommunityPage() {
   const { slug } = useParams();
@@ -11,6 +11,7 @@ function CommunityPage() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPostForm, setShowPostForm] = useState(false);
+  const [showCreateEventForm, setShowCreateEventForm] = useState(false);
   const [members, setMembers] = useState([]);
   const [newEvent, setNewEvent] = useState({
     title: '',
@@ -21,12 +22,10 @@ function CommunityPage() {
     max_capacity: '',
     required_materials: ''
   });
-  const [showCreateEventForm, setShowCreateEventForm] = useState(false);
 
   useEffect(() => {
     fetchCommunityDetails();
   }, [slug]);
-
 
   const fetchCommunityDetails = async () => {
     try {
@@ -35,8 +34,6 @@ function CommunityPage() {
       setCommunity(res.data);
       const postsRes = await api.get(`/api/communities/slug/${slug}/posts/`);
       setPosts(postsRes.data);
-  
-      // Use res.data.id directly here instead of community.id
       fetchCommunityMembers(res.data.id);
     } catch (err) {
       console.error("Error fetching community:", err);
@@ -57,7 +54,7 @@ function CommunityPage() {
   const promoteToModerator = async (membershipId) => {
     try {
       await api.patch(`/api/memberships/${membershipId}/`, { role: 'moderator' });
-      fetchCommunityMembers(community.id); // Refresh after promotion
+      fetchCommunityMembers(community.id);
     } catch (err) {
       console.error("Failed to promote member:", err);
       alert("Failed to promote member.");
@@ -85,28 +82,18 @@ function CommunityPage() {
 
   const handleCreateEvent = (e) => {
     e.preventDefault();
-  
     if (!newEvent.title || !newEvent.description || !newEvent.date || !newEvent.time) {
       alert("All fields are required.");
       return;
     }
-  
-    if (!community?.id) {
-      alert("Community is not loaded yet.");
-      return;
-    }
-  
+
     const payload = {
-        title: newEvent.title,
-        description: newEvent.description,
-        date: newEvent.date,
-        time: newEvent.time,
-        event_type: newEvent.event_type,
-        max_capacity: newEvent.max_capacity || null,
-        required_materials: newEvent.required_materials || '',
-        community_id: community.id  // 👈 not 'community'
-      };
-  
+      ...newEvent,
+      community_id: community.id,
+      max_capacity: newEvent.max_capacity || null,
+      required_materials: newEvent.required_materials || ''
+    };
+
     api.post('/api/events/', payload)
       .then(() => {
         alert("Event created successfully!");
@@ -133,84 +120,59 @@ function CommunityPage() {
   return (
     <div className="community-page-container">
       <Navbar />
-  
       <div className="community-header">
         <h1>{community.name}</h1>
         <p className="community-description">{community.description}</p>
         <p><strong>Members:</strong> {community.member_count}</p>
       </div>
-  
-      {community.tags && community.tags.length > 0 && (
-        <div className="community-tags" style={{ marginTop: '10px', marginBottom: '20px' }}>
+
+      {community.tags?.length > 0 && (
+        <div className="community-tags">
           <strong>Tags:</strong>
           {community.tags.map((tag, index) => (
-            <span key={index} style={{
-              display: 'inline-block',
-              backgroundColor: '#eee',
-              padding: '4px 8px',
-              borderRadius: '12px',
-              margin: '0 5px',
-              fontSize: '0.8em'
-            }}>
-              #{tag}
-            </span>
+            <span key={index} className="tag-pill">#{tag}</span>
           ))}
         </div>
       )}
-  
+
       {community.is_member && (
         <div className="post-actions">
-          <button className="create-post-btn" onClick={() => setShowPostForm(true)}>
-            + New Post
-          </button>
-          {showPostForm && (
-            <PostForm
-              onSubmit={handleCreatePost}
-              onCancel={() => setShowPostForm(false)}
-              categories={["Academic", "Social", "Sports", "Clubs"]}
-              defaultCommunity={community.slug}
-            />
+          <button className="create-post-btn" onClick={() => setShowPostForm(true)}>+ New Post</button>
+          {(community.user_role === 'moderator' || community.user_role === 'admin' || community.is_global_admin) && (
+            <button className="create-post-btn create-event-btn" onClick={() => setShowCreateEventForm(prev => !prev)}>
+              {showCreateEventForm ? 'Cancel Event' : '+ Create Event'}
+            </button>
           )}
         </div>
       )}
-  
+
+      {showPostForm && (
+        <PostForm
+          onSubmit={handleCreatePost}
+          onCancel={() => setShowPostForm(false)}
+          categories={["Academic", "Social", "Sports", "Clubs"]}
+          defaultCommunity={community.slug}
+        />
+      )}
+
       {(community.user_role === 'admin' || community.is_global_admin) && (
-        <div className="member-list" style={{ marginTop: '2rem' }}>
+        <div className="member-list">
           <h3>Community Members</h3>
           {members.length === 0 ? (
             <p>No members yet.</p>
           ) : (
             members.map(member => (
-              <div
-                key={member.id}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '6px 0'
-                }}
-              >
+              <div key={member.id} className="member-row">
                 <span>{member.user} — <strong>{member.role}</strong></span>
                 {member.role !== 'moderator' && (
-                  <button
-                    style={{
-                      padding: '4px 8px',
-                      fontSize: '0.9em',
-                      backgroundColor: '#e0e0e0',
-                      border: '1px solid #ccc',
-                      borderRadius: '4px'
-                    }}
-                    onClick={() => promoteToModerator(member.id)}
-                  >
-                    Make Moderator
-                  </button>
+                  <button className="promote-btn" onClick={() => promoteToModerator(member.id)}>Make Moderator</button>
                 )}
               </div>
             ))
           )}
         </div>
       )}
-  
+
       <h2 className="feed-heading">Community Feed</h2>
       {posts.length === 0 ? (
         <p>No posts yet.</p>
@@ -224,91 +186,30 @@ function CommunityPage() {
               <span>{new Date(post.created_at).toLocaleString()}</span>
             </div>
             {(community.user_role === 'admin' || community.is_global_admin || community.user_role === 'moderator') && (
-              <button className="delete-post-btn" onClick={() => handleDeletePost(post.id)}>
-                Delete
-              </button>
+              <button className="delete-post-btn" onClick={() => handleDeletePost(post.id)}>Delete</button>
             )}
           </div>
         ))
       )}
-      {(community.user_role === 'moderator' || community.user_role === 'admin' || community.is_global_admin) && (
-        <div className="event-create-toggle" style={{ marginTop: '2rem' }}>
-            <button onClick={() => setShowCreateEventForm(prev => !prev)}>
-                {showCreateEventForm ? 'Cancel Event Creation' : '+ Create Event'}
-            </button>
 
-    {showCreateEventForm && (
-      <form onSubmit={handleCreateEvent} style={{ marginTop: '10px' }}>
-        <div>
-          <label>Title:</label>
-          <input
-            type="text"
-            value={newEvent.title}
-            onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-            required
-          />
-        </div>
-        <div>
-          <label>Description:</label>
-          <textarea
-            value={newEvent.description}
-            onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-            required
-          />
-        </div>
-        <div>
-          <label>Date:</label>
-          <input
-            type="date"
-            value={newEvent.date}
-            onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-            required
-          />
-        </div>
-        <div>
-          <label>Time:</label>
-          <input
-            type="time"
-            value={newEvent.time}
-            onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
-            required
-          />
-        </div>
-        <div>
-          <label>Event Type:</label>
-          <select
-            value={newEvent.event_type}
-            onChange={(e) => setNewEvent({ ...newEvent, event_type: e.target.value })}
-          >
+      {showCreateEventForm && (
+        <form onSubmit={handleCreateEvent} className="event-form">
+          <h3>Create Event</h3>
+          <input type="text" placeholder="Title" value={newEvent.title} onChange={e => setNewEvent({ ...newEvent, title: e.target.value })} required />
+          <textarea placeholder="Description" value={newEvent.description} onChange={e => setNewEvent({ ...newEvent, description: e.target.value })} required />
+          <input type="date" value={newEvent.date} onChange={e => setNewEvent({ ...newEvent, date: e.target.value })} required />
+          <input type="time" value={newEvent.time} onChange={e => setNewEvent({ ...newEvent, time: e.target.value })} required />
+          <select value={newEvent.event_type} onChange={e => setNewEvent({ ...newEvent, event_type: e.target.value })}>
             <option value="in_person">In-Person</option>
             <option value="virtual">Virtual</option>
           </select>
-        </div>
-        <div>
-            <label>Max Capacity:</label>
-            <input
-                type="number"
-                value={newEvent.max_capacity}
-                onChange={(e) => setNewEvent({ ...newEvent, max_capacity: e.target.value })}
-                min="1"
-            />
-        </div>
-
-        <div>
-            <label>Required Materials:</label>
-            <textarea
-                value={newEvent.required_materials}
-                onChange={(e) => setNewEvent({ ...newEvent, required_materials: e.target.value })}
-                placeholder="List materials needed, if any"
-            />
-        </div>
-        <button type="submit">Create Event</button>
-      </form>
-    )}
-  </div>
-)}
+          <input type="number" placeholder="Max Capacity" value={newEvent.max_capacity} onChange={e => setNewEvent({ ...newEvent, max_capacity: e.target.value })} min="1" />
+          <textarea placeholder="Required Materials" value={newEvent.required_materials} onChange={e => setNewEvent({ ...newEvent, required_materials: e.target.value })} />
+          <button type="submit" className="create-post-btn">Create Event</button>
+        </form>
+      )}
     </div>
   );
-} 
+}
 
 export default CommunityPage;
