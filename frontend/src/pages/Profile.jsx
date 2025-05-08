@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../api";
 import "../styles/Profile.css";
 import Navbar from "../components/Navbar";
@@ -37,7 +37,7 @@ function Profile() {
       try {
         setLoading(true);
         setError(null);
-  
+
         // Fetch current user data first
         let currentUsername = "";
         try {
@@ -47,7 +47,7 @@ function Profile() {
         } catch (authError) {
           setIsCurrentUser(false);
         }
-  
+
         const endpoint = username ? `/api/profiles/${username}/` : "/api/profile/";
         const profileRes = await api.get(endpoint);
         setProfile(profileRes.data);
@@ -59,33 +59,34 @@ function Profile() {
           course: profileRes.data.course || "",
           interests: profileRes.data.interests || "",
           bio: profileRes.data.bio || "",
-          achievements: profileRes.data.achievements || ""
+          achievements: ""
         });
-  
+
         const targetUsername = username || profileRes.data.username;
-  
+
         // Fetch user's created communities if this is the current user
         if (!username || currentUsername === username) {
           const createdRes = await api.get(`/api/communities/?created_by=${targetUsername}`);
           setUserCommunities(createdRes.data);
         }
-  
+
         // Fetch ALL joined communities for the profile being viewed
         const joinedRes = await api.get(`/api/communities/?membership=joined&user=${targetUsername}`);
         setJoinedCommunities(joinedRes.data);
-  
+
         // Fetch user's posts - ALWAYS for the target user
         const postsRes = await api.get(`/api/notes/?author=${targetUsername}`);
         setUserPosts(postsRes.data);
-  
+
         if (isCurrentUser) {
           const requestsRes = await api.get("/api/friend-requests/");
           setFriendRequests(requestsRes.data);
         }
-  
+
+        // Fetch friends, corrected to show the target user's friends.
         const friendsRes = await api.get(`/api/friends/?user=${targetUsername}`);
         setFriends(friendsRes.data);
-  
+
       } catch (err) {
         setError(err.response?.data?.detail || err.message || "Error loading profile");
         if (err.response?.status === 404) {
@@ -95,7 +96,7 @@ function Profile() {
         setLoading(false);
       }
     };
-  
+
     fetchData();
   }, [username, navigate, isCurrentUser]);
 
@@ -116,25 +117,25 @@ function Profile() {
     e.preventDefault();
     try {
       const formDataToSend = new FormData();
-      
+
       // Append all form data
       Object.keys(formData).forEach(key => {
         if (formData[key] !== null && formData[key] !== undefined) {
           formDataToSend.append(key, formData[key]);
         }
       });
-      
+
       // Only append profile pic if it exists (now optional)
       if (profilePic) {
         formDataToSend.append('profile_pic', profilePic);
       }
-      
+
       const config = {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       };
-      
+
       await api.patch("/api/profile/", formDataToSend, config);
       setIsEditing(false);
       const res = await api.get("/api/profile/");
@@ -194,7 +195,7 @@ function Profile() {
   if (error) return <div className="error-message">Error: {error}</div>;
   if (!profile) return <div className="loading-spinner">Loading...</div>;
 
-  const isProfileIncomplete = !profile.university_email && !profile.address && 
+  const isProfileIncomplete = !profile.university_email && !profile.address &&
     !profile.dob && !profile.course && !profile.interests;
 
   return (
@@ -206,9 +207,9 @@ function Profile() {
           <div className="profile-header">
             <div className="profile-pic-container">
               {profilePicPreview ? (
-                <img 
-                  src={profilePicPreview} 
-                  alt="Profile" 
+                <img
+                  src={profilePicPreview}
+                  alt="Profile"
                   className="profile-pic"
                 />
               ) : (
@@ -220,16 +221,16 @@ function Profile() {
                 <div className="profile-pic-actions">
                   <label className="upload-btn">
                     {profilePicPreview ? "Change Photo" : "Add Photo"}
-                    <input 
-                      type="file" 
-                      accept="image/*" 
+                    <input
+                      type="file"
+                      accept="image/*"
                       onChange={handleProfilePicChange}
                       style={{ display: 'none' }}
                     />
                   </label>
                   {profilePicPreview && (
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="remove-btn"
                       onClick={handleRemoveProfilePic}
                     >
@@ -239,12 +240,12 @@ function Profile() {
                 </div>
               )}
             </div>
-            
+
             <div className="profile-info-header">
               <div className="profile-name-section">
-                <h1>{profile?.username}'s Profile</h1>
+                <h1>{profile?.username}</h1>
                 {isCurrentUser && (
-                  <button 
+                  <button
                     onClick={() => setIsEditing(!isEditing)}
                     className="edit-profile-btn"
                   >
@@ -252,38 +253,27 @@ function Profile() {
                   </button>
                 )}
               </div>
-              
+
               {!isEditing && !isProfileIncomplete && (
                 <div className="profile-details">
-                  {profile.university_email && (
-                    <p>
-                      <span className="detail-label">University Email:</span> 
-                      <span className="detail-value">{profile.university_email}</span>
-                    </p>
-                  )}
+                  <div className="profile-detail-item">
+                    <span className="profile-detail-value">{profile.university_email}</span>
+                  </div>
                   {profile.course && (
-                    <p>
-                      <span className="detail-label">Course:</span> 
-                      <span className="detail-value">{profile.course}</span>
-                    </p>
-                  )}
-                  {profile.interests && (
-                    <p>
-                      <span className="detail-label">Interests:</span> 
-                      <span className="detail-value">{profile.interests}</span>
-                    </p>
+                    <div className="profile-detail-item">
+                      <span className="profile-detail-value">{profile.course}</span>
+                    </div>
                   )}
                   {profile.bio && (
-                    <p className="bio-text">
-                      <span className="detail-label">Bio:</span> 
-                      <span className="detail-value">{profile.bio}</span>
-                    </p>
+                    <div className="profile-detail-item">
+                      <span className="profile-detail-value">{profile.bio}</span>
+                    </div>
                   )}
                 </div>
               )}
             </div>
           </div>
-          
+
           {isCurrentUser && isProfileIncomplete && !isEditing && (
             <div className="empty-state">
               <h3>Your profile is incomplete</h3>
@@ -313,22 +303,22 @@ function Profile() {
                   <p className="error-message">Please enter a valid email address</p>
                 )}
               </div>
-              
+
               <div className="form-group">
                 <label>Date of Birth:</label>
-                <input 
-                  type="date" 
-                  name="dob" 
-                  value={formData.dob} 
-                  onChange={handleChange} 
-                  max={new Date().toISOString().split('T')[0]} 
+                <input
+                  type="date"
+                  name="dob"
+                  value={formData.dob}
+                  onChange={handleChange}
+                  max={new Date().toISOString().split('T')[0]}
                 />
                 {formData.dob && new Date(formData.dob) > new Date() && (
                   <p className="error-message">Date of birth cannot be in the future</p>
                 )}
               </div>
             </div>
-            
+
             <div className="form-group">
               <label>Address:</label>
               <textarea
@@ -342,7 +332,7 @@ function Profile() {
                 <p className="error-message">Address must be at least 5 characters</p>
               )}
             </div>
-            
+
             <div className="form-row">
               <div className="form-group">
                 <label>Course:</label>
@@ -359,7 +349,7 @@ function Profile() {
                 )}
               </div>
             </div>
-            
+
             <div className="form-group">
               <label>Interests:</label>
               <textarea
@@ -373,7 +363,7 @@ function Profile() {
                 <p className="error-message">Please enter at least 3 characters</p>
               )}
             </div>
-            
+
             <div className="form-group">
               <label>Bio:</label>
               <textarea
@@ -387,20 +377,10 @@ function Profile() {
                 <p className="error-message">Bio should be at least 10 characters</p>
               )}
             </div>
-            
-            <div className="form-group">
-              <label>Achievements:</label>
-              <textarea
-                name="achievements"
-                value={formData.achievements}
-                onChange={handleChange}
-                placeholder="Any notable achievements..."
-              />
-            </div>
-            
+
             <div className="form-actions">
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="save-btn"
                 disabled={
                   !formData.university_email ||
@@ -421,49 +401,49 @@ function Profile() {
         {/* Content Tabs */}
         <div className="profile-content-tabs">
           <div className="tabs-header">
-            <button 
+            <button
               className={`tab-button ${activeTab === 'posts' ? 'active' : ''}`}
               onClick={() => setActiveTab('posts')}
             >
               Posts
             </button>
-            <button 
+            <button
               className={`tab-button ${activeTab === 'communities' ? 'active' : ''}`}
               onClick={() => setActiveTab('communities')}
             >
               Communities
             </button>
-            <button 
+            <button
               className={`tab-button ${activeTab === 'friends' ? 'active' : ''}`}
               onClick={() => setActiveTab('friends')}
             >
               Friends
             </button>
           </div>
-          
+
           <div className="tab-content">
             {activeTab === 'posts' && (
               <div className="posts-section">
                 {userPosts.length === 0 ? (
                   <div className="empty-posts">
                     <div className="empty-icon">
-                      <svg 
-                        className="w-10 h-10 text-gray-400" 
-                        fill="none" 
-                        stroke="currentColor" 
+                      <svg
+                        className="w-10 h-10 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
                         viewBox="0 0 24 24"
                       >
-                        <path 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          strokeWidth={2} 
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" 
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                         />
-                        <path 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          strokeWidth={2} 
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" 
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                         />
                       </svg>
                     </div>
@@ -475,9 +455,9 @@ function Profile() {
                 ) : (
                   <div className="posts-list">
                     {userPosts.map((post) => (
-                      <Note 
-                        key={post.id} 
-                        note={post} 
+                      <Note
+                        key={post.id}
+                        note={post}
                         onDelete={handleDeletePost}
                         showDelete={isCurrentUser}
                       />
@@ -486,15 +466,15 @@ function Profile() {
                 )}
               </div>
             )}
-            
+
             {activeTab === 'communities' && (
               <div className="communities-section">
                 {joinedCommunities.length === 0 ? (
                   <div className="empty-communities">
                     <h3>No communities yet</h3>
                     <p>
-                      {isCurrentUser 
-                        ? "You haven't joined any communities yet. Explore communities to join!" 
+                      {isCurrentUser
+                        ? "You haven't joined any communities yet. Explore communities to join!"
                         : `${profile.username} hasn't joined any communities yet.`}
                     </p>
                   </div>
@@ -507,15 +487,44 @@ function Profile() {
                 )}
               </div>
             )}
-            
+
             {activeTab === 'friends' && (
               <div className="friends-section">
+                {isCurrentUser && friendRequests.length > 0 && (
+                  <div className="friend-requests-container">
+                    <h3>Friend Requests</h3>
+                    <div className="requests-list">
+                      {friendRequests.map((req) => (
+                        <div key={req.id} className="request-item">
+                          <div className="request-info">
+                            <p>{req.sender} sent you a friend request.</p>
+                          </div>
+                          <div className="request-actions">
+                            <button
+                              onClick={() => handleRespondToRequest(req.id, "accept")}
+                              className="accept-btn"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => handleRespondToRequest(req.id, "decline")}
+                              className="decline-btn"
+                            >
+                              Decline
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {friends.length === 0 ? (
                   <div className="empty-friends">
                     <h3>No friends yet</h3>
                     <p>
-                      {isCurrentUser 
-                        ? "You haven't added any friends yet. Connect with others!" 
+                      {isCurrentUser
+                        ? "You haven't added any friends yet. Connect with others!"
                         : `${profile.username} hasn't added any friends yet.`}
                     </p>
                   </div>
@@ -533,7 +542,15 @@ function Profile() {
                           )}
                         </div>
                         <div className="friend-info">
-                          <h4>{friend.username}</h4>
+                          <h4>
+                            <Link to={`/profile/${friend.username}`}style={{
+                              color: "inherit",
+                              padding: "10px",
+                              textDecoration: "none",
+                            }}>
+                              {friend.username}
+                            </Link>
+                          </h4>
                           {friend.course && <p>{friend.course}</p>}
                         </div>
                         {isCurrentUser && (
@@ -552,36 +569,6 @@ function Profile() {
             )}
           </div>
         </div>
-
-        {/* Friend Requests */}
-        {isCurrentUser && friendRequests.length > 0 && (
-          <div className="friend-requests-section">
-            <h3>Friend Requests</h3>
-            <div className="requests-list">
-              {friendRequests.map((req) => (
-                <div key={req.id} className="request-item">
-                  <div className="request-info">
-                    <p>{req.sender} sent you a friend request.</p>
-                  </div>
-                  <div className="request-actions">
-                    <button 
-                      onClick={() => handleRespondToRequest(req.id, "accept")}
-                      className="accept-btn"
-                    >
-                      Accept
-                    </button>
-                    <button 
-                      onClick={() => handleRespondToRequest(req.id, "decline")}
-                      className="decline-btn"
-                    >
-                      Decline
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

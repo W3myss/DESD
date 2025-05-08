@@ -20,22 +20,19 @@ function CommunityCard({ community, onJoin, onLeave, onDelete }) {
   };
 
   return (
-    <Link
-      to={`/communities/${community.slug}`}
-      style={{
-        display: "block",
-        textDecoration: "none",
-        color: "inherit",
-        backgroundColor: "#f9f9f9",
-        border: "2px solid red",
-        padding: "10px",
-        marginBottom: "10px"
-      }}
-  onClick={() => console.log("Link click triggered!")}
->
       <div className="community-card">
         <div className="community-header">
+            <Link
+          to={`/communities/${community.slug}`}
+          style={{
+            color: "inherit",
+            padding: "10px",
+            textDecoration: "none",
+          }}
+      onClick={() => console.log("Link click triggered!")}
+    >
           <h3>{community.name}</h3>
+        </Link>
           <span className="community-category">{community.category}</span>
         </div>
         
@@ -73,7 +70,6 @@ function CommunityCard({ community, onJoin, onLeave, onDelete }) {
           )}
         </div>
       </div>
-    </Link>
   );
 }
 
