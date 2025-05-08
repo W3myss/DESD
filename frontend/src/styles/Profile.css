@@ -4,148 +4,217 @@
   padding: 20px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-  
-  .profile-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-  }
-  
-  .profile-header h1 {
-    color: #333;
-    font-size: 2rem;
-    margin: 0;
-  }
-  
-  .edit-profile-btn, .save-btn {
-    background-color: #4346ff;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.3s;
-  }
-  
-  .edit-profile-btn:hover, .save-btn:hover {
-    background-color: #3333cc;
-  }
-  
-  .profile-info {
-    background-color: #f8f8f8;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 30px;
-  }
-  
-  .profile-info p {
-    margin: 10px 0;
-    line-height: 1.6;
-  }
-  
-  .profile-form {
-    background-color: #f8f8f8;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 30px;
-  }
-  
-  .form-group {
-    margin-bottom: 15px;
-  }
-  
-  .form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 600;
-  }
-  
-  .form-group input,
-  .form-group textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-  }
-  
-  .form-group textarea {
-    min-height: 100px;
-    resize: vertical;
-  }
-  
-  .profile-section {
-    margin-bottom: 40px;
-  }
-  
-  .profile-section h2 {
-    color: #333;
-    border-bottom: 2px solid #4346ff;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-  }
-  
-  .communities-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
-  }
-  
-  .posts-list {
-    display: grid;
-    gap: 20px;
-  }
 
-  .loading-spinner {
-    border: 4px solid rgba(0, 0, 0, 0.1);
-    border-radius: 50%;
-    border-top: 4px solid #4346ff;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin: 20px auto;
-  }
-  
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  
-  .error-message {
-    color: #e30613;
-    padding: 20px;
-    background-color: #ffeeee;
-    border-radius: 5px;
-    text-align: center;
-  }
-  
-  .profile-section {
-    margin-top: 40px;
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-  }
-  
-  .communities-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
-  }
-  
-  .posts-list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    margin-top: 20px;
-  }
-  
-  .empty-state {
-    color: #666;
-    text-align: center;
-    padding: 20px;
-    background-color: #f0f0f0;
-    border-radius: 5px;
-  }
+.profile-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.profile-header-right {
+  flex-grow: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.profile-header h1 {
+  color: #333;
+  font-size: 2rem;
+  margin: 0;
+}
+
+.edit-profile-btn, .save-btn {
+  background-color: #4346ff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s;
+}
+
+.edit-profile-btn:hover, .save-btn:hover {
+  background-color: #3333cc;
+}
+
+.profile-info {
+  background-color: #f8f8f8;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.profile-info p {
+  margin: 10px 0;
+  line-height: 1.6;
+}
+
+.profile-form {
+  background-color: #f8f8f8;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-group textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.profile-section {
+  margin-bottom: 40px;
+}
+
+.profile-section h2 {
+  color: #333;
+  border-bottom: 2px solid #4346ff;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.communities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.posts-list {
+  display: grid;
+  gap: 20px;
+}
+
+.loading-spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top: 4px solid #4346ff;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  color: #e30613;
+  padding: 20px;
+  background-color: #ffeeee;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.profile-section {
+  margin-top: 40px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+.communities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.empty-state {
+  color: #666;
+  text-align: center;
+  padding: 20px;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+}
+
+.profile-pic-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.profile-pic {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #4a90e2;
+  margin-bottom: 10px;
+}
+
+.profile-pic-placeholder {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background-color: #4a90e2;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.profile-pic-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.upload-btn, .remove-btn {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.upload-btn {
+  background-color: #4a90e2;
+  color: white;
+}
+
+.remove-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+.upload-btn:hover {
+  background-color: #357abd;
+}
+
+.remove-btn:hover {
+  background-color: #d32f2f;
+}

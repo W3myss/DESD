@@ -11,6 +11,28 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework import permissions
 from .models import Event
 from .serializers import EventSerializer
+from django.http import JsonResponse
+from django.db.models import Q
+from .models import User
+from .models import FriendRequest
+from .serializers import FriendRequestSerializer
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.contrib.auth.models import User
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.models import User
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.contrib.auth.models import User
+from rest_framework.permissions import IsAuthenticated
 
 
 
@@ -70,27 +92,46 @@ class ProfileView(generics.RetrieveUpdateAPIView):
     lookup_url_kwarg = 'username'
 
     def get_queryset(self):
-        return Profile.objects.all()
+        queryset = Community.objects.annotate(
+            member_count=models.Count('members')
+        )
+        
+        # Filter by category if provided
+        category = self.request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category=category)
+        
+        # Filter by membership status if provided
+        membership = self.request.query_params.get('membership')
+        user_filter = self.request.query_params.get('user')
+        
+        if membership and user_filter:
+            try:
+                user = User.objects.get(username=user_filter)
+                if membership == 'joined':
+                    queryset = queryset.filter(members__user=user)
+                elif membership == 'not_joined':
+                    queryset = queryset.exclude(members__user=user)
+            except User.DoesNotExist:
+                pass
+        
+        return queryset
 
     def get_object(self):
         if 'username' in self.kwargs:
-            # Viewing another user's profile
             username = self.kwargs['username']
             return get_object_or_404(Profile, user__username=username)
         else:
-            # Viewing own profile
             profile, created = Profile.objects.get_or_create(user=self.request.user)
             return profile
 
-    def get_object(self):
-        if 'username' in self.kwargs:
-            # Viewing another user's profile
-            username = self.kwargs['username']
-            return get_object_or_404(Profile, user__username=username)
-        else:
-            # Viewing own profile
-            profile, created = Profile.objects.get_or_create(user=self.request.user)
-            return profile
+    def perform_update(self, serializer):
+        # Handle file deletion if needed
+        if 'profile_pic' in self.request.data and self.request.data['profile_pic'] == 'null':
+            instance = self.get_object()
+            if instance.profile_pic:
+                instance.profile_pic.delete()
+        serializer.save()
     
 class CommunityListCreate(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -115,11 +156,17 @@ class CommunityListCreate(generics.ListCreateAPIView):
         
         # Filter by membership status if provided
         membership = self.request.query_params.get('membership')
-        if membership and self.request.user.is_authenticated:
-            if membership == 'joined':
-                queryset = queryset.filter(members__user=self.request.user)
-            elif membership == 'not_joined':
-                queryset = queryset.exclude(members__user=self.request.user)
+        user_filter = self.request.query_params.get('user')
+        
+        if membership and user_filter:
+            try:
+                user = User.objects.get(username=user_filter)
+                if membership == 'joined':
+                    queryset = queryset.filter(members__user=user)
+                elif membership == 'not_joined':
+                    queryset = queryset.exclude(members__user=user)
+            except User.DoesNotExist:
+                pass
         
         return queryset
     
@@ -261,3 +308,98 @@ class EventDetailView(generics.RetrieveUpdateDestroyAPIView):
         if instance.created_by != self.request.user:
             raise PermissionDenied("You do not have permission to delete this event.")
         instance.delete()
+
+from django.http import JsonResponse
+from django.db.models import Q
+from .models import Profile  # Use Profile instead of User
+
+def search_students(request):
+    course = request.GET.get('course', '')
+    year = request.GET.get('year', '')  # Keep this if you added the year field
+    interests = request.GET.get('interests', '')
+
+    filters = Q()
+    if course:
+        filters &= Q(course__icontains=course)
+    if year:  # Adjust this if using a different field
+        filters &= Q(year__icontains=year)
+    if interests:
+        filters &= Q(interests__icontains=interests)
+
+    try:
+        students = Profile.objects.filter(filters).select_related('user')
+        student_data = [
+            {
+                "id": student.user.id,
+                "username": student.user.username,
+                "course": student.course,
+                "year": student.year,  # Adjust this if using a different field
+                "interests": student.interests,
+            }
+            for student in students
+        ]
+        return JsonResponse(student_data, safe=False)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+class FriendRequestView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        receiver_id = request.data.get('receiver_id')
+        try:
+            receiver = User.objects.get(id=receiver_id)
+            if FriendRequest.objects.filter(sender=request.user, receiver=receiver, status='pending').exists():
+                return Response({"detail": "Friend request already sent."}, status=status.HTTP_400_BAD_REQUEST)
+            FriendRequest.objects.create(sender=request.user, receiver=receiver)
+            return Response({"detail": "Friend request sent."}, status=status.HTTP_201_CREATED)
+        except User.DoesNotExist:
+            return Response({"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    def get(self, request):
+        requests = FriendRequest.objects.filter(receiver=request.user, status='pending')
+        serializer = FriendRequestSerializer(requests, many=True)
+        return Response(serializer.data)
+
+    def patch(self, request, pk):
+        try:
+            friend_request = FriendRequest.objects.get(id=pk, receiver=request.user)
+            action = request.data.get('action')
+            if action == 'accept':
+                friend_request.status = 'accepted'
+                friend_request.save()
+                # Add both users to each other's friend lists (if applicable)
+                return Response({"detail": "Friend request accepted."})
+            elif action == 'decline':
+                friend_request.delete()
+                return Response({"detail": "Friend request declined."})
+            else:
+                return Response({"detail": "Invalid action."}, status=status.HTTP_400_BAD_REQUEST)
+        except FriendRequest.DoesNotExist:
+            return Response({"detail": "Friend request not found."}, status=status.HTTP_404_NOT_FOUND)
+
+class FriendsListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        friends = User.objects.filter(
+            sent_requests__receiver=user, sent_requests__status="accepted"
+        ) | User.objects.filter(
+            received_requests__sender=user, received_requests__status="accepted"
+        )
+        friends_data = [{"id": friend.id, "username": friend.username} for friend in friends]
+        return Response(friends_data)
+
+class RemoveFriendView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        try:
+            friend = User.objects.get(pk=pk)
+            # Remove the friendship (both directions)
+            request.user.sent_requests.filter(receiver=friend, status="accepted").delete()
+            request.user.received_requests.filter(sender=friend, status="accepted").delete()
+            return Response({"detail": "Friend removed successfully."}, status=status.HTTP_204_NO_CONTENT)
+        except User.DoesNotExist:
+            return Response({"detail": "Friend not found."}, status=status.HTTP_404_NOT_FOUND)
