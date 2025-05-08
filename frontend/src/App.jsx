@@ -58,7 +58,7 @@ function App() {
             }
           />
           <Route
-          path="/search" // Add the search route
+          path="/search"
           element={
             <ProtectedRoute>
               <Search />
