@@ -34,6 +34,7 @@ from rest_framework.response import Response
 from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAdminUser
+from django.db.models import Q
 
 
 
@@ -327,33 +328,21 @@ from django.db.models import Q
 from .models import Profile  # Use Profile instead of User
 
 def search_students(request):
+    username = request.GET.get('username', '')
     course = request.GET.get('course', '')
-    year = request.GET.get('year', '')  # Keep this if you added the year field
     interests = request.GET.get('interests', '')
 
-    filters = Q()
-    if course:
-        filters &= Q(course__icontains=course)
-    if year:  # Adjust this if using a different field
-        filters &= Q(year__icontains=year)
-    if interests:
-        filters &= Q(interests__icontains=interests)
+    students = User.objects.all()
 
-    try:
-        students = Profile.objects.filter(filters).select_related('user')
-        student_data = [
-            {
-                "id": student.user.id,
-                "username": student.user.username,
-                "course": student.course,
-                "year": student.year,  # Adjust this if using a different field
-                "interests": student.interests,
-            }
-            for student in students
-        ]
-        return JsonResponse(student_data, safe=False)
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+    if username:
+        students = students.filter(username__icontains=username)
+    if course:
+        students = students.filter(profile__course__icontains=course)
+    if interests:
+        students = students.filter(profile__interests__icontains=interests)
+
+    serializer = UserSerializer(students, many=True)
+    return JsonResponse(serializer.data, safe=False)
 
 class FriendRequestView(APIView):
     permission_classes = [IsAuthenticated]
