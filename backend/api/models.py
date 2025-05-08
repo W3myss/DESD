@@ -147,3 +147,15 @@ class FriendRequest(models.Model):
 
     def __str__(self):
         return f"{self.sender.username} -> {self.receiver.username} ({self.status})"
+    
+class EventSignup(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='event_signups')
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='signups')
+    signed_up_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'event')  # Prevent duplicate signups
+
+    def __str__(self):
+        return f"{self.user.username} signed up for {self.event.title}"
+

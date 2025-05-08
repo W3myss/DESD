@@ -29,5 +29,7 @@ urlpatterns = [
     path("communities/<int:pk>/members/", views.CommunityMembersView.as_view(), name="community-members"),
     path("memberships/<int:pk>/", views.MembershipUpdateView.as_view(), name="membership-update"),
     path('events/<int:pk>/', EventDeleteView.as_view(), name='event-delete'),
+    path('events/<int:event_id>/signups/', views.EventSignupListView.as_view()),
+    path('events/signup/', views.EventSignupView.as_view()),
 
 ]

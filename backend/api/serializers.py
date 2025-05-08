@@ -7,6 +7,7 @@ from .models import Membership
 from .models import Event
 from .models import FriendRequest
 from .models import Tag
+from.models import EventSignup
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -138,13 +139,14 @@ class EventSerializer(serializers.ModelSerializer):
     user_role = serializers.SerializerMethodField()
     community = serializers.CharField(source='community.name', read_only=True)
     community_id = serializers.IntegerField(write_only=True)
+    signup_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
         fields = [
             'id', 'title', 'description', 'date', 'time', 'event_type',
             'max_capacity', 'required_materials', 'created_by', 'created_at',
-            'community', 'community_id', 'user_role'
+            'community', 'community_id', 'user_role', 'signup_count'
         ]
         read_only_fields = ['created_by', 'created_at']
 
@@ -168,6 +170,9 @@ class EventSerializer(serializers.ModelSerializer):
             return membership.role
         except Membership.DoesNotExist:
             return None
+        
+    def get_signup_count(self, obj):
+        return obj.signups.count()
     
 class FriendRequestSerializer(serializers.ModelSerializer):
     sender = serializers.ReadOnlyField(source='sender.username')
@@ -176,3 +181,10 @@ class FriendRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = FriendRequest
         fields = ['id', 'sender', 'receiver', 'status', 'created_at']
+
+class EventSignupSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')
+
+    class Meta:
+        model = EventSignup
+        fields = ['id', 'user', 'event', 'signed_up_at']

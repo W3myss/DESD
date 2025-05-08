@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from django.db import models
 from rest_framework.exceptions import PermissionDenied
 from rest_framework import permissions
-from .models import Event
+from .models import Event, EventSignup
 from .serializers import EventSerializer
 from django.http import JsonResponse
 from django.db.models import Q
@@ -35,6 +35,7 @@ from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAdminUser
 from django.db.models import Q
+from .serializers import EventSignupSerializer
 
 
 
@@ -484,3 +485,42 @@ class CommunityMembersView(APIView):
         members = Membership.objects.filter(community=community)
         serializer = MembershipSerializer(members, many=True)
         return Response(serializer.data)
+    
+class EventSignupView(generics.CreateAPIView):
+    serializer_class = EventSignupSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        event_id = self.request.data.get('event')
+        if not event_id:
+            raise PermissionDenied("Event ID required.")
+        
+        try:
+            event = Event.objects.get(id=event_id)
+        except Event.DoesNotExist:
+            raise PermissionDenied("Event not found.")
+
+        user = self.request.user
+
+        # Check if user is already signed up
+        if EventSignup.objects.filter(event=event, user=user).exists():
+            raise PermissionDenied("You are already signed up for this event.")
+
+        # Check if user is a member of the community
+        is_member = Membership.objects.filter(community=event.community, user=user).exists()
+        if not is_member:
+            raise PermissionDenied("You must be a member of the community to join this event.")
+        
+        # Check if event is full
+        if event.max_capacity and EventSignup.objects.filter(event=event).count() >= event.max_capacity:
+            raise PermissionDenied("This event has reached maximum capacity.")
+        
+        serializer.save(user=user, event=event)
+        
+class EventSignupListView(generics.ListAPIView):
+    serializer_class = EventSignupSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        event_id = self.kwargs.get('event_id')
+        return EventSignup.objects.filter(event_id=event_id)
