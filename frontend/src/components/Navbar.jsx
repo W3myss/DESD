@@ -32,14 +32,6 @@ function Navbar() {
           COMMUNITIES
         </NavLink>
         <NavLink 
-          to="/profile" 
-          className={({ isActive }) => 
-            isActive ? "navbar-title active" : "navbar-title"
-          }
-        >
-          PROFILE
-        </NavLink>
-        <NavLink 
           to="/events" 
           className={({ isActive }) => 
             isActive ? "navbar-title active" : "navbar-title"
@@ -54,6 +46,14 @@ function Navbar() {
           }
         >
           SEARCH
+        </NavLink>
+        <NavLink 
+          to="/profile" 
+          className={({ isActive }) => 
+            isActive ? "navbar-title active" : "navbar-title"
+          }
+        >
+          PROFILE
         </NavLink>
       </div>
       <button className="navbar-logout" onClick={handleLogout}>
