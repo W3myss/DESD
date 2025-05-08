@@ -12,10 +12,12 @@ function Profile() {
   const [profile, setProfile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    bio: "",
+    university_email: "",
+    address: "",
+    dob: "",
     course: "",
-    year: "",
     interests: "",
+    bio: "",
     achievements: ""
   });
   const [userCommunities, setUserCommunities] = useState([]);
@@ -47,10 +49,12 @@ function Profile() {
         const profileRes = await api.get(endpoint);
         setProfile(profileRes.data);
         setFormData({
-          bio: profileRes.data.bio || "",
+          university_email: profileRes.data.university_email || "",
+          address: profileRes.data.address || "",
+          dob: profileRes.data.dob || "",
           course: profileRes.data.course || "",
-          year: profileRes.data.year || "",
           interests: profileRes.data.interests || "",
+          bio: profileRes.data.bio || "",
           achievements: profileRes.data.achievements || ""
         });
 
@@ -118,15 +122,15 @@ function Profile() {
   if (!profile) return <div className="loading-spinner">Loading...</div>;
 
   // Check if profile is incomplete (all fields are null)
-  const isProfileIncomplete = !profile.bio && !profile.course && !profile.year && 
-                            !profile.interests && !profile.achievements;
+  const isProfileIncomplete = !profile.university_email && !profile.address && 
+  !profile.dob && !profile.course && !profile.interests;
 
   return (
     <div className="main-content">
       <Navbar />
       <div className="profile-container">
         <div className="profile-header">
-          <h1>Welcome, {profile.username}!</h1>
+          <h1>{profile.username}'s Profile</h1>
           {isCurrentUser && (
             <button 
               onClick={() => setIsEditing(!isEditing)}
@@ -150,76 +154,89 @@ function Profile() {
           </div>
         )}
 
-        {isEditing ? (
-          <form onSubmit={handleUpdateProfile} className="profile-form">
-            <div className="form-group">
-              <label>Bio:</label>
-              <textarea
-                name="bio"
-                value={formData.bio}
-                onChange={handleChange}
-                maxLength="500"
-                placeholder="Tell us about yourself..."
-              />
-            </div>
-            <div className="form-group">
-              <label>Course:</label>
-              <input
-                type="text"
-                name="course"
-                value={formData.course}
-                onChange={handleChange}
-                maxLength="100"
-                placeholder="What are you studying?"
-              />
-            </div>
-            <div className="form-group">
-              <label>Year:</label>
-              <input
-                type="number"
-                name="year"
-                value={formData.year}
-                onChange={handleChange}
-                min="1"
-                max="6"
-                placeholder="Current year of study (1-6)"
-              />
-            </div>
-            <div className="form-group">
-              <label>Interests:</label>
-              <textarea
-                name="interests"
-                value={formData.interests}
-                onChange={handleChange}
-                maxLength="300"
-                placeholder="Your hobbies and interests..."
-              />
-            </div>
-            <div className="form-group">
-              <label>Achievements:</label>
-              <textarea
-                name="achievements"
-                value={formData.achievements}
-                onChange={handleChange}
-                maxLength="300"
-                placeholder="Any notable achievements..."
-              />
-            </div>
-            <button type="submit" className="save-btn">Save Changes</button>
-          </form>
-        ) : (
-          !isProfileIncomplete && (
-            <div className="profile-info">
-              {profile.bio && <p><strong>Bio:</strong> {profile.bio}</p>}
-              {profile.course && <p><strong>Course:</strong> {profile.course}</p>}
-              {profile.year && <p><strong>Year:</strong> {profile.year}</p>}
-              {profile.interests && <p><strong>Interests:</strong> {profile.interests}</p>}
-              {profile.achievements && <p><strong>Achievements:</strong> {profile.achievements}</p>}
-            </div>
-          )
-        )}
+    {isEditing ? (
+        <form onSubmit={handleUpdateProfile} className="profile-form">
+          <div className="form-group">
+            <label>University Email:</label>
+            <input
+              type="email"
+              name="university_email"
+              value={formData.university_email}
+              onChange={handleChange}
+              placeholder="Your university email address"
+            />
+          </div>
+          <div className="form-group">
+            <label>Address:</label>
+            <textarea
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              placeholder="Your current address"
+            />
+          </div>
+          <div className="form-group">
+            <label>Date of Birth:</label>
+            <input
+              type="date"
+              name="dob"
+              value={formData.dob}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="form-group">
+            <label>Course:</label>
+            <input
+              type="text"
+              name="course"
+              value={formData.course}
+              onChange={handleChange}
+              placeholder="What are you studying?"
+            />
+          </div>
+          <div className="form-group">
+            <label>Interests:</label>
+            <textarea
+              name="interests"
+              value={formData.interests}
+              onChange={handleChange}
+              placeholder="Your hobbies and interests..."
+            />
+          </div>
+          <div className="form-group">
+            <label>Bio:</label>
+            <textarea
+              name="bio"
+              value={formData.bio}
+              onChange={handleChange}
+              placeholder="Tell us about yourself..."
+            />
+          </div>
+          <div className="form-group">
+            <label>Achievements:</label>
+            <textarea
+              name="achievements"
+              value={formData.achievements}
+              onChange={handleChange}
+              placeholder="Any notable achievements..."
+            />
+          </div>
+          <button type="submit" className="save-btn">Save Changes</button>
+        </form>
+      ) : (
+        !isProfileIncomplete && (
+          <div className="profile-info">
+            {profile.university_email && <p><strong>University Email:</strong> {profile.university_email}</p>}
+            {profile.address && <p><strong>Address:</strong> {profile.address}</p>}
+            {profile.dob && <p><strong>Date of Birth:</strong> {new Date(profile.dob).toLocaleDateString()}</p>}
+            {profile.course && <p><strong>Course:</strong> {profile.course}</p>}
+            {profile.interests && <p><strong>Interests:</strong> {profile.interests}</p>}
+            {profile.bio && <p><strong>Bio:</strong> {profile.bio}</p>}
+            {profile.achievements && <p><strong>Achievements:</strong> {profile.achievements}</p>}
+          </div>
+        )
+      )}
 
-        {/* Rest of the component remains the same */}
         {isCurrentUser && userCommunities.length > 0 && (
           <div className="profile-section">
             <h2>My Communities</h2>

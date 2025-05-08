@@ -34,7 +34,11 @@ class ProfileSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Profile
-        fields = ['id', 'username', 'bio', 'course', 'year', 'interests', 'achievements', 'created_at', 'updated_at']
+        fields = [
+            'id', 'username', 'university_email', 'address', 'dob', 
+            'course', 'interests', 'bio', 'achievements', 
+            'created_at', 'updated_at'
+        ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 class CommunitySerializer(serializers.ModelSerializer):
