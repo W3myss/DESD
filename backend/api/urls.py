@@ -6,6 +6,7 @@ from .views import FriendsListView
 from .views import RemoveFriendView
 
 
+
 urlpatterns = [
     path("notes/", views.NoteListCreate.as_view(), name="note-list"),
     path("notes/delete/<int:pk>/", views.NoteDelete.as_view(), name="delete-note"),
@@ -23,5 +24,9 @@ urlpatterns = [
     path("friend-requests/<int:pk>/", FriendRequestView.as_view(), name="friend-request-detail"),
     path("friends/", FriendsListView.as_view(), name="friends-list"),
     path("friends/<int:pk>/remove/", RemoveFriendView.as_view(), name="remove-friend"),
-    path("communities/slug/<slug:slug>/posts/", views.CommunityPostsView.as_view(), name="community-posts")
+    path("communities/slug/<slug:slug>/posts/", views.CommunityPostsView.as_view(), name="community-posts"),
+    path("communities/<int:community_id>/set_role/", views.UpdateMembershipRoleView.as_view(), name="set-role"),
+    path("communities/<int:pk>/members/", views.CommunityMembersView.as_view(), name="community-members"),
+    path("memberships/<int:pk>/", views.MembershipUpdateView.as_view(), name="membership-update")
+
 ]

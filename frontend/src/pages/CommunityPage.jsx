@@ -11,10 +11,12 @@ function CommunityPage() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPostForm, setShowPostForm] = useState(false);
+  const [members, setMembers] = useState([]);
 
   useEffect(() => {
     fetchCommunityDetails();
   }, [slug]);
+
 
   const fetchCommunityDetails = async () => {
     try {
@@ -23,10 +25,32 @@ function CommunityPage() {
       setCommunity(res.data);
       const postsRes = await api.get(`/api/communities/slug/${slug}/posts/`);
       setPosts(postsRes.data);
+  
+      // Use res.data.id directly here instead of community.id
+      fetchCommunityMembers(res.data.id);
     } catch (err) {
       console.error("Error fetching community:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCommunityMembers = async (communityId) => {
+    try {
+      const res = await api.get(`/api/communities/${communityId}/members/`);
+      setMembers(res.data);
+    } catch (err) {
+      console.error("Error fetching members:", err);
+    }
+  };
+
+  const promoteToModerator = async (membershipId) => {
+    try {
+      await api.patch(`/api/memberships/${membershipId}/`, { role: 'moderator' });
+      fetchCommunityMembers(community.id); // Refresh after promotion
+    } catch (err) {
+      console.error("Failed to promote member:", err);
+      alert("Failed to promote member.");
     }
   };
 
@@ -55,31 +79,31 @@ function CommunityPage() {
   return (
     <div className="community-page-container">
       <Navbar />
-
+  
       <div className="community-header">
         <h1>{community.name}</h1>
         <p className="community-description">{community.description}</p>
         <p><strong>Members:</strong> {community.member_count}</p>
       </div>
-
+  
       {community.tags && community.tags.length > 0 && (
         <div className="community-tags" style={{ marginTop: '10px', marginBottom: '20px' }}>
-            <strong>Tags:</strong>
-            {community.tags.map((tag, index) => (
-                <span key={index} style={{
-                    display: 'inline-block',
-                    backgroundColor: '#eee',
-                    padding: '4px 8px',
-                    borderRadius: '12px',
-                    margin: '0 5px',
-                    fontSize: '0.8em'
-                }}>
-                    #{tag}
-                </span>
-            ))}
+          <strong>Tags:</strong>
+          {community.tags.map((tag, index) => (
+            <span key={index} style={{
+              display: 'inline-block',
+              backgroundColor: '#eee',
+              padding: '4px 8px',
+              borderRadius: '12px',
+              margin: '0 5px',
+              fontSize: '0.8em'
+            }}>
+              #{tag}
+            </span>
+          ))}
         </div>
       )}
-
+  
       {community.is_member && (
         <div className="post-actions">
           <button className="create-post-btn" onClick={() => setShowPostForm(true)}>
@@ -95,7 +119,44 @@ function CommunityPage() {
           )}
         </div>
       )}
-
+  
+      {(community.user_role === 'admin' || community.is_global_admin) && (
+        <div className="member-list" style={{ marginTop: '2rem' }}>
+          <h3>Community Members</h3>
+          {members.length === 0 ? (
+            <p>No members yet.</p>
+          ) : (
+            members.map(member => (
+              <div
+                key={member.id}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '6px 0'
+                }}
+              >
+                <span>{member.user} — <strong>{member.role}</strong></span>
+                {member.role !== 'moderator' && (
+                  <button
+                    style={{
+                      padding: '4px 8px',
+                      fontSize: '0.9em',
+                      backgroundColor: '#e0e0e0',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px'
+                    }}
+                    onClick={() => promoteToModerator(member.id)}
+                  >
+                    Make Moderator
+                  </button>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      )}
+  
       <h2 className="feed-heading">Community Feed</h2>
       {posts.length === 0 ? (
         <p>No posts yet.</p>
@@ -108,16 +169,16 @@ function CommunityPage() {
               <span>By {post.author}</span>
               <span>{new Date(post.created_at).toLocaleString()}</span>
             </div>
-            {(community.user_role === 'admin' || community.is_global_admin) && (
-                <button className="delete-post-btn" onClick={() => handleDeletePost(post.id)}>
-                    Delete
-                </button>
+            {(community.user_role === 'admin' || community.is_global_admin || community.user_role === 'moderator') && (
+              <button className="delete-post-btn" onClick={() => handleDeletePost(post.id)}>
+                Delete
+              </button>
             )}
           </div>
         ))
       )}
     </div>
   );
-}
+} 
 
 export default CommunityPage;

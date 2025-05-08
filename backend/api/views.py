@@ -33,7 +33,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated
-
+from rest_framework.permissions import IsAdminUser
 
 
 
@@ -74,10 +74,18 @@ class NoteDelete(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        return Note.objects.all()
+
+    def perform_destroy(self, instance):
         user = self.request.user
-        if user.is_staff:  # or `user.is_superuser` or your custom flag
-            return Note.objects.all()
-        return Note.objects.filter(author=user)
+        if instance.author == user:
+            instance.delete()
+        else:
+            membership = Membership.objects.filter(user=user, community__name=instance.community).first()
+            if membership and membership.role in ['moderator', 'admin']:
+                instance.delete()
+            else:
+                raise PermissionDenied("You do not have permission to delete this post.")
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -403,3 +411,60 @@ class RemoveFriendView(APIView):
             return Response({"detail": "Friend removed successfully."}, status=status.HTTP_204_NO_CONTENT)
         except User.DoesNotExist:
             return Response({"detail": "Friend not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+
+class UpdateMembershipRoleView(APIView):
+    permission_classes = [IsAdminUser]  # Only superusers can do this
+
+    def post(self, request, *args, **kwargs):
+        community_id = kwargs.get('community_id')
+        username = request.data.get('username')
+        new_role = request.data.get('role')
+
+        if new_role not in ['member', 'moderator', 'admin']:
+            return Response({'detail': 'Invalid role'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            community = Community.objects.get(id=community_id)
+            user = User.objects.get(username=username)
+            membership = Membership.objects.get(user=user, community=community)
+            membership.role = new_role
+            membership.save()
+            return Response({'detail': f"{username}'s role updated to {new_role}"})
+        except (Community.DoesNotExist, User.DoesNotExist, Membership.DoesNotExist):
+            return Response({'detail': 'User or community not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+class MembershipUpdateView(generics.UpdateAPIView):
+    queryset = Membership.objects.all()
+    serializer_class = MembershipSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_update(self, serializer):
+        membership = self.get_object()
+        user = self.request.user
+        community = membership.community  # Ensure this is fetched
+
+    # Check if user is a global admin
+        is_global_admin = user.is_superuser
+
+    # Check if user is admin of the same community
+        is_community_admin = Membership.objects.filter(
+            community=community,
+            user=user,
+            role='admin'
+        ).exists()
+
+        if not is_global_admin and not is_community_admin:
+            raise PermissionDenied("You don't have permission to promote this member.")
+
+        serializer.save()
+
+        
+class CommunityMembersView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        community = get_object_or_404(Community, pk=pk)
+        members = Membership.objects.filter(community=community)
+        serializer = MembershipSerializer(members, many=True)
+        return Response(serializer.data)
