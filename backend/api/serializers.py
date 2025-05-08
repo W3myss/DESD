@@ -5,6 +5,7 @@ from .models import Profile
 from .models import Community
 from .models import Membership
 from .models import Event
+from .models import Tag
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -21,6 +22,10 @@ class UserSerializer(serializers.ModelSerializer):
 
 class NoteSerializer(serializers.ModelSerializer):
     author = serializers.ReadOnlyField(source='author.username')
+    community = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Community.objects.all()
+    )
     
     class Meta:
         model = Note
@@ -42,18 +47,31 @@ class ProfileSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ['name']
+
+
 class CommunitySerializer(serializers.ModelSerializer):
     created_by = serializers.ReadOnlyField(source='created_by.username')
     member_count = serializers.SerializerMethodField()
     is_member = serializers.SerializerMethodField()
     user_role = serializers.SerializerMethodField()
+    tags = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='name'
+    )
+    is_global_admin = serializers.SerializerMethodField()
     
     class Meta:
         model = Community
         fields = ['id', 'name', 'slug', 'description', 'category', 'created_by', 'created_at', 
-                 'member_count', 'is_member', 'user_role']
+                 'member_count', 'is_member', 'user_role','tags', 'is_global_admin']   
         read_only_fields = ['id', 'created_by', 'created_at']
     
+
     def get_member_count(self, obj):
         return obj.members.count()
     
@@ -63,6 +81,10 @@ class CommunitySerializer(serializers.ModelSerializer):
             return False
             
         return obj.members.filter(user=request.user).exists()
+    
+    def get_is_global_admin(self, obj):
+        request = self.context.get('request')
+        return request.user.is_superuser if request and request.user else False
     
     def get_user_role(self, obj):
         request = self.context.get('request')
@@ -82,17 +104,26 @@ class MembershipSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'user', 'community', 'joined_at']
 
 class CreateCommunitySerializer(serializers.ModelSerializer):
+    tags = serializers.ListField(
+        child=serializers.CharField(), required=False
+    )
+
     class Meta:
         model = Community
-        fields = ['id', 'name', 'description', 'category']
+        fields = ['id', 'name', 'description', 'category', 'tags']
         read_only_fields = ['id']
-    
+
     def create(self, validated_data):
+        tags_data = validated_data.pop('tags', [])
         community = Community.objects.create(
             created_by=self.context['request'].user,
             **validated_data
         )
-        # Make creator an admin
+
+        for tag_name in tags_data:
+            tag, _ = Tag.objects.get_or_create(name=tag_name.strip())
+            community.tags.add(tag)
+
         Membership.objects.create(
             user=self.context['request'].user,
             community=community,

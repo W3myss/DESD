@@ -4,7 +4,8 @@ function CommunityForm({ onSubmit, onCancel, categories }) {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    category: categories[0].toLowerCase()
+    category: categories[0].toLowerCase(),
+    tags: ""
   });
 
   const handleChange = (e) => {
@@ -17,7 +18,14 @@ function CommunityForm({ onSubmit, onCancel, categories }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    const payload = {
+      ...formData,
+      tags: formData.tags
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag)  // removes empty strings
+    };
+    onSubmit(payload);
   };
 
   return (
@@ -59,6 +67,17 @@ function CommunityForm({ onSubmit, onCancel, categories }) {
                 <option key={cat} value={cat.toLowerCase()}>{cat}</option>
               ))}
             </select>
+          </div>
+  
+          <div className="form-group">
+            <label>Tags (comma-separated)</label>
+            <input
+              type="text"
+              name="tags"
+              placeholder="e.g. chess, strategy, logic"
+              value={formData.tags}
+              onChange={handleChange}
+            />
           </div>
           
           <div className="form-actions">
