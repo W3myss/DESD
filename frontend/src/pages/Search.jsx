@@ -1,10 +1,10 @@
 import { useState } from "react";
 import api from "../api";
 import Navbar from "../components/Navbar";
+import "../styles/Search.css";
 
 function UserCard({ user }) {
-  // Fetch or define the current user
-  const currentUser = JSON.parse(localStorage.getItem("currentUser")); // Example: Fetch from localStorage
+  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
   const handleSendRequest = () => {
     if (user.id === currentUser?.id) {
@@ -24,8 +24,16 @@ function UserCard({ user }) {
 
   return (
     <div className="user-card">
-      <p>{user.username}</p>
-      <button onClick={handleSendRequest}>Add Friend</button>
+      <div className="user-info">
+        <div className="user-details">
+          <p className="user-name">{user.username}</p>
+          <p className="user-email">{user.email}</p> {/* Display email */}
+          <p className="user-course">{user.course}</p> {/* Display course */}
+        </div>
+      </div>
+      <button className="add-friend-button" onClick={handleSendRequest}>
+        Add Friend
+      </button>
     </div>
   );
 }
@@ -44,7 +52,6 @@ function Search() {
 
     try {
       const response = await api.get(`/api/search/students/?username=${username}&course=${course}&interests=${interests}`);
-      console.log("Students Response:", response.data);
       setStudents(response.data);
     } catch (err) {
       console.error("Search failed:", err);
@@ -56,34 +63,38 @@ function Search() {
       <Navbar />
       <div className="search-container">
         <h1>Search Students</h1>
-        <input
-          type="text"
-          placeholder="Filter by username..."
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Filter by course..."
-          value={course}
-          onChange={(e) => setCourse(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Filter by interests..."
-          value={interests}
-          onChange={(e) => setInterests(e.target.value)}
-        />
-        <button onClick={handleSearch}>Search</button>
+        <div className="filters-container">
+          <input
+            type="text"
+            placeholder="Filter by username..."
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Filter by course..."
+            value={course}
+            onChange={(e) => setCourse(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Filter by interests..."
+            value={interests}
+            onChange={(e) => setInterests(e.target.value)}
+          />
+        </div>
+        <button className="search-input-group button" onClick={handleSearch}>
+          Search
+        </button>
       </div>
-      <div className="search-results">
+      <div className="search-results-container">
         <h2>Students</h2>
         {students.length > 0 ? (
           students.map(student => (
             <UserCard key={student.id} user={student} />
           ))
         ) : (
-          <p>No students found.</p>
+          <p className="no-results-message">No students found.</p>
         )}
       </div>
     </div>
