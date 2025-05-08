@@ -30,6 +30,7 @@ function Profile() {
   const [friends, setFriends] = useState([]);
   const [profilePic, setProfilePic] = useState(null);
   const [profilePicPreview, setProfilePicPreview] = useState(null);
+  const [activeTab, setActiveTab] = useState("posts");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -200,81 +201,134 @@ function Profile() {
     <div className="main-content">
       <Navbar />
       <div className="profile-container">
-        <div className="profile-header">
-          <div className="profile-pic-container">
-            {profilePicPreview ? (
-              <img 
-                src={profilePicPreview} 
-                alt="Profile" 
-                className="profile-pic"
-              />
-            ) : (
-              <div className="profile-pic-placeholder">
-                {profile?.username?.charAt(0).toUpperCase()}
-              </div>
-            )}
-            {isEditing && (
-              <div className="profile-pic-actions">
-                <label className="upload-btn">
-                  {profilePicPreview ? "Change Photo" : "Add Photo"}
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={handleProfilePicChange}
-                    style={{ display: 'none' }}
-                  />
-                </label>
-                {profilePicPreview && (
+        {/* Profile Header */}
+        <div className="profile-header-container">
+          <div className="profile-header">
+            <div className="profile-pic-container">
+              {profilePicPreview ? (
+                <img 
+                  src={profilePicPreview} 
+                  alt="Profile" 
+                  className="profile-pic"
+                />
+              ) : (
+                <div className="profile-pic-placeholder">
+                  {profile?.username?.charAt(0).toUpperCase()}
+                </div>
+              )}
+              {isEditing && (
+                <div className="profile-pic-actions">
+                  <label className="upload-btn">
+                    {profilePicPreview ? "Change Photo" : "Add Photo"}
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleProfilePicChange}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                  {profilePicPreview && (
+                    <button 
+                      type="button" 
+                      className="remove-btn"
+                      onClick={handleRemoveProfilePic}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            <div className="profile-info-header">
+              <div className="profile-name-section">
+                <h1>{profile?.username}'s Profile</h1>
+                {isCurrentUser && (
                   <button 
-                    type="button" 
-                    className="remove-btn"
-                    onClick={handleRemoveProfilePic}
+                    onClick={() => setIsEditing(!isEditing)}
+                    className="edit-profile-btn"
                   >
-                    Remove
+                    {isEditing ? "Cancel" : "Edit Profile"}
                   </button>
                 )}
               </div>
-            )}
-          </div>
-          <div className="profile-header-right">
-            <h1>{profile?.username}'s Profile</h1>
-            {isCurrentUser && (
-              <button 
-                onClick={() => setIsEditing(!isEditing)}
-                className="edit-profile-btn"
-              >
-                {isEditing ? "Cancel" : "Edit Profile"}
-              </button>
-            )}
-          </div>
-        </div>
-
-        {isCurrentUser && isProfileIncomplete && !isEditing && (
-          <div className="empty-state">
-            <h3>Your profile is incomplete</h3>
-            <p>Please complete your profile to share more about yourself with the community.</p>
-            <button onClick={() => setIsEditing(true)} className="edit-profile-btn">
-              Complete Profile
-            </button>
-          </div>
-        )}
-
-        {isEditing ? (
-          <form onSubmit={handleUpdateProfile} className="profile-form">
-            <div className="form-group">
-              <label>University Email:</label>
-              <input
-                type="email"
-                name="university_email"
-                value={formData.university_email}
-                onChange={handleChange}
-                placeholder="Your university email address"
-                required
-              />
-              {formData.university_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.university_email) && (
-                <p className="error-message">Please enter a valid email address</p>
+              
+              {!isEditing && !isProfileIncomplete && (
+                <div className="profile-details">
+                  {profile.university_email && (
+                    <p>
+                      <span className="detail-label">University Email:</span> 
+                      <span className="detail-value">{profile.university_email}</span>
+                    </p>
+                  )}
+                  {profile.course && (
+                    <p>
+                      <span className="detail-label">Course:</span> 
+                      <span className="detail-value">{profile.course}</span>
+                    </p>
+                  )}
+                  {profile.interests && (
+                    <p>
+                      <span className="detail-label">Interests:</span> 
+                      <span className="detail-value">{profile.interests}</span>
+                    </p>
+                  )}
+                  {profile.bio && (
+                    <p className="bio-text">
+                      <span className="detail-label">Bio:</span> 
+                      <span className="detail-value">{profile.bio}</span>
+                    </p>
+                  )}
+                </div>
               )}
             </div>
+          </div>
+          
+          {isCurrentUser && isProfileIncomplete && !isEditing && (
+            <div className="empty-state">
+              <h3>Your profile is incomplete</h3>
+              <p>Please complete your profile to share more about yourself with the community.</p>
+              <button onClick={() => setIsEditing(true)} className="edit-profile-btn">
+                Complete Profile
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Edit Profile Form */}
+        {isEditing && (
+          <form onSubmit={handleUpdateProfile} className="profile-form">
+            <div className="form-row">
+              <div className="form-group">
+                <label>University Email:</label>
+                <input
+                  type="email"
+                  name="university_email"
+                  value={formData.university_email}
+                  onChange={handleChange}
+                  placeholder="Your university email address"
+                  required
+                />
+                {formData.university_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.university_email) && (
+                  <p className="error-message">Please enter a valid email address</p>
+                )}
+              </div>
+              
+              <div className="form-group">
+                <label>Date of Birth:</label>
+                <input 
+                  type="date" 
+                  name="dob" 
+                  value={formData.dob} 
+                  onChange={handleChange} 
+                  max={new Date().toISOString().split('T')[0]} 
+                />
+                {formData.dob && new Date(formData.dob) > new Date() && (
+                  <p className="error-message">Date of birth cannot be in the future</p>
+                )}
+              </div>
+            </div>
+            
             <div className="form-group">
               <label>Address:</label>
               <textarea
@@ -288,33 +342,24 @@ function Profile() {
                 <p className="error-message">Address must be at least 5 characters</p>
               )}
             </div>
-            <div className="form-group">
-              <label>Date of Birth:</label>
-              <input 
-                type="date" 
-                name="dob" 
-                value={formData.dob} 
-                onChange={handleChange} 
-                max={new Date().toISOString().split('T')[0]} 
-              />
-              {formData.dob && new Date(formData.dob) > new Date() && (
-                <p className="error-message">Date of birth cannot be in the future</p>
-              )}
+            
+            <div className="form-row">
+              <div className="form-group">
+                <label>Course:</label>
+                <input
+                  type="text"
+                  name="course"
+                  value={formData.course}
+                  onChange={handleChange}
+                  placeholder="What are you studying?"
+                  minLength="2"
+                />
+                {formData.course && formData.course.length < 2 && (
+                  <p className="error-message">Course must be at least 2 characters</p>
+                )}
+              </div>
             </div>
-            <div className="form-group">
-              <label>Course:</label>
-              <input
-                type="text"
-                name="course"
-                value={formData.course}
-                onChange={handleChange}
-                placeholder="What are you studying?"
-                minLength="2"
-              />
-              {formData.course && formData.course.length < 2 && (
-                <p className="error-message">Course must be at least 2 characters</p>
-              )}
-            </div>
+            
             <div className="form-group">
               <label>Interests:</label>
               <textarea
@@ -328,6 +373,7 @@ function Profile() {
                 <p className="error-message">Please enter at least 3 characters</p>
               )}
             </div>
+            
             <div className="form-group">
               <label>Bio:</label>
               <textarea
@@ -341,6 +387,7 @@ function Profile() {
                 <p className="error-message">Bio should be at least 10 characters</p>
               )}
             </div>
+            
             <div className="form-group">
               <label>Achievements:</label>
               <textarea
@@ -350,110 +397,187 @@ function Profile() {
                 placeholder="Any notable achievements..."
               />
             </div>
-            <button 
-              type="submit" 
-              className="save-btn"
-              disabled={
-                !formData.university_email ||
-                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.university_email) ||
-                (formData.address && formData.address.length < 5) ||
-                (formData.dob && new Date(formData.dob) > new Date()) ||
-                (formData.course && formData.course.length < 2) ||
-                (formData.interests && formData.interests.length < 3) ||
-                (formData.bio && formData.bio.length < 10)
-              }
-            >
-              Save Changes
-            </button>
+            
+            <div className="form-actions">
+              <button 
+                type="submit" 
+                className="save-btn"
+                disabled={
+                  !formData.university_email ||
+                  !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.university_email) ||
+                  (formData.address && formData.address.length < 5) ||
+                  (formData.dob && new Date(formData.dob) > new Date()) ||
+                  (formData.course && formData.course.length < 2) ||
+                  (formData.interests && formData.interests.length < 3) ||
+                  (formData.bio && formData.bio.length < 10)
+                }
+              >
+                Save Changes
+              </button>
+            </div>
           </form>
-        ) : (
-          !isProfileIncomplete && (
-            <div className="profile-info">
-              {profile.university_email && (
-                <p>
-                  <strong>University Email:</strong> {profile.university_email}
-                </p>
-              )}
-              {profile.course && (
-                <p>
-                  <strong>Course:</strong> {profile.course}
-                </p>
-              )}
-              {profile.interests && (
-                <p>
-                  <strong>Interests:</strong> {profile.interests}
-                </p>
-              )}
-              {profile.bio && (
-                <p>
-                  <strong>Bio:</strong> {profile.bio}
-                </p>
-              )}
-              {profile.achievements && (
-                <p>
-                  <strong>Achievements:</strong> {profile.achievements}
-                </p>
-              )}
-            </div>
-          )
         )}
 
-        {isCurrentUser && friendRequests.length > 0 && (
-          <div className="profile-section">
-            <h2>Friend Requests</h2>
-            {friendRequests.map((req) => (
-              <div key={req.id} className="friend-request">
-                <p>{req.sender} sent you a friend request.</p>
-                <button onClick={() => handleRespondToRequest(req.id, "accept")}>Accept</button>
-                <button onClick={() => handleRespondToRequest(req.id, "decline")}>Decline</button>
+        {/* Content Tabs */}
+        <div className="profile-content-tabs">
+          <div className="tabs-header">
+            <button 
+              className={`tab-button ${activeTab === 'posts' ? 'active' : ''}`}
+              onClick={() => setActiveTab('posts')}
+            >
+              Posts
+            </button>
+            <button 
+              className={`tab-button ${activeTab === 'communities' ? 'active' : ''}`}
+              onClick={() => setActiveTab('communities')}
+            >
+              Communities
+            </button>
+            <button 
+              className={`tab-button ${activeTab === 'friends' ? 'active' : ''}`}
+              onClick={() => setActiveTab('friends')}
+            >
+              Friends
+            </button>
+          </div>
+          
+          <div className="tab-content">
+            {activeTab === 'posts' && (
+              <div className="posts-section">
+                {userPosts.length === 0 ? (
+                  <div className="empty-posts">
+                    <div className="empty-icon">
+                      <svg 
+                        className="w-10 h-10 text-gray-400" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={2} 
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" 
+                        />
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={2} 
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" 
+                        />
+                      </svg>
+                    </div>
+                    <h3>No posts yet</h3>
+                    <p>
+                      You haven't created any posts yet. Share your thoughts, ideas, or questions with your communities.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="posts-list">
+                    {userPosts.map((post) => (
+                      <Note 
+                        key={post.id} 
+                        note={post} 
+                        onDelete={handleDeletePost}
+                        showDelete={isCurrentUser}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
-            ))}
+            )}
+            
+            {activeTab === 'communities' && (
+              <div className="communities-section">
+                {joinedCommunities.length === 0 ? (
+                  <div className="empty-communities">
+                    <h3>No communities yet</h3>
+                    <p>
+                      {isCurrentUser 
+                        ? "You haven't joined any communities yet. Explore communities to join!" 
+                        : `${profile.username} hasn't joined any communities yet.`}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="communities-grid">
+                    {joinedCommunities.map((community) => (
+                      <CommunityCard key={community.id} community={community} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {activeTab === 'friends' && (
+              <div className="friends-section">
+                {friends.length === 0 ? (
+                  <div className="empty-friends">
+                    <h3>No friends yet</h3>
+                    <p>
+                      {isCurrentUser 
+                        ? "You haven't added any friends yet. Connect with others!" 
+                        : `${profile.username} hasn't added any friends yet.`}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="friends-list">
+                    {friends.map((friend) => (
+                      <div key={friend.id} className="friend-item">
+                        <div className="friend-avatar">
+                          {friend.profile_pic ? (
+                            <img src={friend.profile_pic} alt={friend.username} />
+                          ) : (
+                            <div className="avatar-placeholder">
+                              {friend.username.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        <div className="friend-info">
+                          <h4>{friend.username}</h4>
+                          {friend.course && <p>{friend.course}</p>}
+                        </div>
+                        {isCurrentUser && (
+                          <button
+                            onClick={() => handleRemoveFriend(friend.id)}
+                            className="remove-friend-btn"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
-        {friends.length > 0 && (
-          <div className="profile-section">
-            <h2>Friends</h2>
-            <ul>
-              {friends.map((friend) => (
-                <li key={friend.id}>
-                  {friend.username}
-                  {isCurrentUser && (
-                    <button
-                      onClick={() => handleRemoveFriend(friend.id)}
-                      className="remove-friend-btn"
+        {/* Friend Requests */}
+        {isCurrentUser && friendRequests.length > 0 && (
+          <div className="friend-requests-section">
+            <h3>Friend Requests</h3>
+            <div className="requests-list">
+              {friendRequests.map((req) => (
+                <div key={req.id} className="request-item">
+                  <div className="request-info">
+                    <p>{req.sender} sent you a friend request.</p>
+                  </div>
+                  <div className="request-actions">
+                    <button 
+                      onClick={() => handleRespondToRequest(req.id, "accept")}
+                      className="accept-btn"
                     >
-                      Remove
+                      Accept
                     </button>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {joinedCommunities.length > 0 && (
-          <div className="profile-section">
-            <h2>{isCurrentUser ? "Your Communities" : `${profile.username}'s Communities`}</h2>
-            <div className="communities-grid">
-              {joinedCommunities.map((community) => (
-                <CommunityCard key={community.id} community={community} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {userPosts.length > 0 && (
-          <div className="profile-section">
-            <h2>Recent Posts</h2>
-            <div className="posts-list">
-              {userPosts.slice(0, 5).map((post) => (
-                <Note 
-                  key={post.id} 
-                  note={post} 
-                  onDelete={handleDeletePost}
-                  showDelete={isCurrentUser}
-                />
+                    <button 
+                      onClick={() => handleRespondToRequest(req.id, "decline")}
+                      className="decline-btn"
+                    >
+                      Decline
+                    </button>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
