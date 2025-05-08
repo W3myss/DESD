@@ -14,4 +14,5 @@ urlpatterns = [
     path("communities/<int:pk>/leave/", views.MembershipView.as_view(), name="leave-community"),
     path('events/', EventListCreateView.as_view(), name='event-list-create'),
     path('events/<int:pk>/', EventDetailView.as_view(), name='event-detail'),
+    path("communities/slug/<slug:slug>/posts/", views.CommunityPostsView.as_view(), name="community-posts")
 ]
