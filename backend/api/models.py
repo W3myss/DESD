@@ -10,6 +10,12 @@ from django.utils import timezone
 class Note(models.Model):
     CATEGORY_CHOICES = [
         ('academic', 'Academic'),
+        ('arts', 'Arts'),
+        ('wellness', 'Wellness'),
+        ('career', 'Career'),
+        ('technology', 'Technology'),
+        ('volunteering', 'Volunteering'),
+        ('housing', 'Housing'),
         ('social', 'Social'),
         ('sports', 'Sports'),
         ('clubs', 'Clubs'),
@@ -63,6 +69,12 @@ class Tag(models.Model):
 class Community(models.Model):
     CATEGORY_CHOICES = [
         ('academic', 'Academic'),
+        ('arts', 'Arts'),
+        ('wellness', 'Wellness'),
+        ('career', 'Career'),
+        ('technology', 'Technology'),
+        ('volunteering', 'Volunteering'),
+        ('housing', 'Housing'),
         ('social', 'Social'),
         ('sports', 'Sports'),
         ('clubs', 'Clubs'),

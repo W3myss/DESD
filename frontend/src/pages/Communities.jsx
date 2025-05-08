@@ -16,7 +16,7 @@ function Communities() {
     sort: "name"
   });
 
-  const categories = ["All", "Academic", "Social", "Sports", "Clubs"];
+  const categories = ["All", "Academic", "Arts","Wellness", "Career", "Technology", "Volunteering", "Housing", "Social", "Sports", "Clubs"];
   const membershipFilters = ["All", "Joined", "Not Joined"];
 
   useEffect(() => {
