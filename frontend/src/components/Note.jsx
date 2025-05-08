@@ -1,7 +1,7 @@
 import React from "react";
 import "../styles/Note.css";
 
-function Note({ note, onDelete }) {
+function Note({ note, onDelete, showDelete }) {
   const formattedDate = new Date(note.created_at).toLocaleDateString('en-UK', {
     year: 'numeric',
     month: 'short',
@@ -21,14 +21,16 @@ function Note({ note, onDelete }) {
       </div>
       <h3 className="note-title">{note.title}</h3>
       <p className="note-content">{note.content}</p>
-      <div className="note-actions">
-        <button 
-          className="delete-button"
-          onClick={() => onDelete(note.id)}
-        >
-          Delete
-        </button>
-      </div>
+      {showDelete && (
+        <div className="note-actions">
+          <button 
+            className="delete-button"
+            onClick={() => onDelete(note.id)}
+          >
+            Delete
+          </button>
+        </div>
+      )}
     </div>
   );
 }

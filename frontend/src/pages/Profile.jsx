@@ -36,7 +36,7 @@ function Profile() {
       try {
         setLoading(true);
         setError(null);
-
+  
         // Fetch current user data first
         let currentUsername = "";
         try {
@@ -46,7 +46,7 @@ function Profile() {
         } catch (authError) {
           setIsCurrentUser(false);
         }
-
+  
         const endpoint = username ? `/api/profiles/${username}/` : "/api/profile/";
         const profileRes = await api.get(endpoint);
         setProfile(profileRes.data);
@@ -60,31 +60,31 @@ function Profile() {
           bio: profileRes.data.bio || "",
           achievements: profileRes.data.achievements || ""
         });
-
+  
         const targetUsername = username || profileRes.data.username;
-
+  
         // Fetch user's created communities if this is the current user
         if (!username || currentUsername === username) {
           const createdRes = await api.get(`/api/communities/?created_by=${targetUsername}`);
           setUserCommunities(createdRes.data);
         }
-
+  
         // Fetch ALL joined communities for the profile being viewed
         const joinedRes = await api.get(`/api/communities/?membership=joined&user=${targetUsername}`);
         setJoinedCommunities(joinedRes.data);
-
-        // Fetch user's posts
+  
+        // Fetch user's posts - ALWAYS for the target user
         const postsRes = await api.get(`/api/notes/?author=${targetUsername}`);
         setUserPosts(postsRes.data);
-
+  
         if (isCurrentUser) {
           const requestsRes = await api.get("/api/friend-requests/");
           setFriendRequests(requestsRes.data);
         }
-
+  
         const friendsRes = await api.get(`/api/friends/?user=${targetUsername}`);
         setFriends(friendsRes.data);
-
+  
       } catch (err) {
         setError(err.response?.data?.detail || err.message || "Error loading profile");
         if (err.response?.status === 404) {
@@ -94,7 +94,7 @@ function Profile() {
         setLoading(false);
       }
     };
-
+  
     fetchData();
   }, [username, navigate, isCurrentUser]);
 
@@ -142,6 +142,18 @@ function Profile() {
       alert("Profile updated successfully!");
     } catch (err) {
       alert("Error updating profile");
+    }
+  };
+
+  const handleDeletePost = async (postId) => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+    try {
+      await api.delete(`/api/notes/delete/${postId}/`);
+      setUserPosts((prev) => prev.filter((post) => post.id !== postId));
+      alert("Post deleted successfully");
+    } catch (err) {
+      console.error("Error deleting post:", err);
+      alert("Failed to delete post");
     }
   };
 
@@ -257,7 +269,11 @@ function Profile() {
                 value={formData.university_email}
                 onChange={handleChange}
                 placeholder="Your university email address"
+                required
               />
+              {formData.university_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.university_email) && (
+                <p className="error-message">Please enter a valid email address</p>
+              )}
             </div>
             <div className="form-group">
               <label>Address:</label>
@@ -266,11 +282,24 @@ function Profile() {
                 value={formData.address}
                 onChange={handleChange}
                 placeholder="Your current address"
+                minLength="5"
               />
+              {formData.address && formData.address.length < 5 && (
+                <p className="error-message">Address must be at least 5 characters</p>
+              )}
             </div>
             <div className="form-group">
               <label>Date of Birth:</label>
-              <input type="date" name="dob" value={formData.dob} onChange={handleChange} />
+              <input 
+                type="date" 
+                name="dob" 
+                value={formData.dob} 
+                onChange={handleChange} 
+                max={new Date().toISOString().split('T')[0]} 
+              />
+              {formData.dob && new Date(formData.dob) > new Date() && (
+                <p className="error-message">Date of birth cannot be in the future</p>
+              )}
             </div>
             <div className="form-group">
               <label>Course:</label>
@@ -280,7 +309,11 @@ function Profile() {
                 value={formData.course}
                 onChange={handleChange}
                 placeholder="What are you studying?"
+                minLength="2"
               />
+              {formData.course && formData.course.length < 2 && (
+                <p className="error-message">Course must be at least 2 characters</p>
+              )}
             </div>
             <div className="form-group">
               <label>Interests:</label>
@@ -289,7 +322,11 @@ function Profile() {
                 value={formData.interests}
                 onChange={handleChange}
                 placeholder="Your hobbies and interests..."
+                minLength="3"
               />
+              {formData.interests && formData.interests.length < 3 && (
+                <p className="error-message">Please enter at least 3 characters</p>
+              )}
             </div>
             <div className="form-group">
               <label>Bio:</label>
@@ -298,7 +335,11 @@ function Profile() {
                 value={formData.bio}
                 onChange={handleChange}
                 placeholder="Tell us about yourself..."
+                minLength="10"
               />
+              {formData.bio && formData.bio.length < 10 && (
+                <p className="error-message">Bio should be at least 10 characters</p>
+              )}
             </div>
             <div className="form-group">
               <label>Achievements:</label>
@@ -309,7 +350,19 @@ function Profile() {
                 placeholder="Any notable achievements..."
               />
             </div>
-            <button type="submit" className="save-btn">
+            <button 
+              type="submit" 
+              className="save-btn"
+              disabled={
+                !formData.university_email ||
+                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.university_email) ||
+                (formData.address && formData.address.length < 5) ||
+                (formData.dob && new Date(formData.dob) > new Date()) ||
+                (formData.course && formData.course.length < 2) ||
+                (formData.interests && formData.interests.length < 3) ||
+                (formData.bio && formData.bio.length < 10)
+              }
+            >
               Save Changes
             </button>
           </form>
@@ -319,16 +372,6 @@ function Profile() {
               {profile.university_email && (
                 <p>
                   <strong>University Email:</strong> {profile.university_email}
-                </p>
-              )}
-              {profile.address && (
-                <p>
-                  <strong>Address:</strong> {profile.address}
-                </p>
-              )}
-              {profile.dob && (
-                <p>
-                  <strong>Date of Birth:</strong> {new Date(profile.dob).toLocaleDateString()}
                 </p>
               )}
               {profile.course && (
@@ -389,7 +432,6 @@ function Profile() {
           </div>
         )}
 
-
         {joinedCommunities.length > 0 && (
           <div className="profile-section">
             <h2>{isCurrentUser ? "Your Communities" : `${profile.username}'s Communities`}</h2>
@@ -406,7 +448,12 @@ function Profile() {
             <h2>Recent Posts</h2>
             <div className="posts-list">
               {userPosts.slice(0, 5).map((post) => (
-                <Note key={post.id} note={post} />
+                <Note 
+                  key={post.id} 
+                  note={post} 
+                  onDelete={handleDeletePost}
+                  showDelete={isCurrentUser}
+                />
               ))}
             </div>
           </div>
